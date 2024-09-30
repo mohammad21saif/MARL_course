@@ -10,7 +10,10 @@ DEPARTMENT: EECS
 Q-learning without epsilon greedy and with epsilon greedy is used.  
 Epsilon-greedy is implemented as decaying to balance exploration and exploitation.  
 At the early stages of training, agent should explore more to gather information about rewards associated with states and actions.   
-As agent learns over time it should explot the its learned knowledge.
+As agent learns over time it should exploit the its learned knowledge.  
+
+High epsilon -> agent takes random actions more frequently.  
+Low epsilon -> agent chooses action with maximum q-value. 
 
 To run without epsilon-greedy, change the following variables inside ```main()``` function.  
 ```bash
