@@ -544,7 +544,7 @@ def main() -> None:
     state, _ = env.reset()
 
     # Hyperparameters
-    num_episodes = 39999
+    num_episodes = 14999
     alpha = 0.03  # Learning rate
     gamma = 0.99
     epsilon_start = 0.5

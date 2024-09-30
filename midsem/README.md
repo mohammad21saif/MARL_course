@@ -4,10 +4,14 @@ NAME: Mohammad Saifullah Khan
 ROLL NO.: 21169  
 DEPARTMENT: EECS
 
+## Run the Code:
+```bash
+python3 q_with_epsilon.py
+```
 
 ## ANSWER:
 
-Q-learning without epsilon greedy and with epsilon greedy is used.  
+Q-learning without epsilon-greedy and with epsilon-greedy is used.  
 Epsilon-greedy is implemented as decaying to balance exploration and exploitation.  
 At the early stages of training, agent should explore more to gather information about rewards associated with states and actions.   
 As agent learns over time it should exploit the its learned knowledge.  
@@ -32,3 +36,9 @@ To run with with epsilon-greedy, change the following variables inside ```main()
 epsilon_start = <some value>
 epsilon_end = <some value>
 ```
+
+## Q-Learning Class:
+
+## Hyperparameters:
+
+## Results:
