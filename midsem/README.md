@@ -13,7 +13,13 @@ At the early stages of training, agent should explore more to gather information
 As agent learns over time it should exploit the its learned knowledge.  
 
 High epsilon -> agent takes random actions more frequently.  
-Low epsilon -> agent chooses action with maximum q-value. 
+Low epsilon -> agent chooses action with maximum q-value.  
+
+In the code,  
+```epsilon_start``` -> epsilon at the start of training process.   
+```epsilon_end``` -> minimum value of epsilon decay.  
+```epsilon_decay_steps``` -> the rate at which the epsilon value decreases.  
+
 
 To run without epsilon-greedy, change the following variables inside ```main()``` function.  
 ```bash
