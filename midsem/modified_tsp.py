@@ -202,7 +202,7 @@ def main() -> None:
     obs = env.reset()
     ep_rets = []
 
-    for ep in range(100):
+    for ep in range(10):
         ret = 0
         obs = env.reset()
         for _ in range(100):
