@@ -88,4 +88,9 @@ TD Target Calculation: Finds the best next action -> calculate the TD target -> 
 | Discount Factor (```gamma```) | 0.99 |
 | Epsilon Start (```epsilon_start```) | 0.0 |
 | Minimum epsilon (```epsilon_end```) | 0.0 |
-| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
+| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |  
+
+Average Return = -2151.08,  
+Average TD error = 455.39,  
+Convergence of reward at 172.21
+
