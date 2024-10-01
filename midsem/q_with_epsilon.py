@@ -196,7 +196,7 @@ class ModTSP(gym.Env):
 
 
 
-class QLearningAgent:
+class QLearning:
     """
     Q-Learning Agent for the Modified TSP Environment.
     """
@@ -231,7 +231,6 @@ class QLearningAgent:
         self.epsilon_decay = (epsilon_start - epsilon_end) / epsilon_decay_steps
         self.num_targets = num_targets
 
-        self.steps_done = 0
 
         self.Q_table = {}
         self.td_errors = []
@@ -261,8 +260,6 @@ class QLearningAgent:
         Returns:
         - int: Action to take in the current state.
         """
-        self.steps_done += 1
-
         if self.epsilon > self.epsilon_min:
             self.epsilon -= self.epsilon_decay
         else:
@@ -389,7 +386,7 @@ def main() -> None:
     epsilon_decay_steps = 300
 
     # Initialize Agent
-    agent = QLearningAgent(
+    agent = QLearning(
         alpha=alpha,
         gamma=gamma,
         epsilon_start=epsilon_start,
@@ -402,7 +399,7 @@ def main() -> None:
     loss = []
 
     for ep in range(1, num_episodes + 1):
-        ret = 0
+        total_reward = 0
         state, _ = env.reset()
 
         for _ in range(env.max_steps):
