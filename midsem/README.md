@@ -73,6 +73,7 @@ Agent Initializations:
 ```self.td_errors```: list to track td errors,  
 ```self.epsilon_decay```: rate at which epsilon decreases to shift from exploration to exploitation,  
 
+
 Functions:  
 
 ```select_action(self, state: np.ndarray) -> int```  
@@ -81,8 +82,11 @@ Exploration: With probability epsilon, selects a random action.
 Exploitation: With probability 1 - epsilon, selects the action with the highest Q-value for the current state.  
 Epsilon Update: Decreases epsilon after each action towards epsilon_end.  
 
+
 ```update(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None```  
-Updates the Q-value table using the Q-learning update rule; ```Q(s, a) = Q(s, a) + \alpha [r + \gamma max Q(s', a') - Q(s, a)]```
+Updates the Q-value table using the Q-learning update rule; ```Q(s, a) = Q(s, a) + \alpha [r + \gamma max Q(s', a') - Q(s, a)]```  
+Q-Value Initialization: Ensures that Q-values for the current and next states are initialized.  
+TD Target Calculation: Finds the best next action -> calculate the TD target -> TD error calculation -> Q-value update.   
 
 
 
