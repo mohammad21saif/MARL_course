@@ -83,6 +83,7 @@ TD Target Calculation: Finds the best next action -> calculate the TD target -> 
 
 ## Results:
 
+### Run 1
 | Hyperparameter | Value |
 | -------------- | ----- |
 | Learning Rate (```alpha```) | 0.03 |
@@ -98,7 +99,7 @@ Convergence of returns at 176.36
 ![q_learning_loss_19999_0.5_0.01_300.png](q_learning_loss_19999_0.5_0.01_300.png)  
 
 
-
+### Run 2
 | Hyperparameter | Value |
 | -------------- | ----- |
 | Learning Rate (```alpha```) | 0.03 |
@@ -112,6 +113,11 @@ Average TD error = 1546.64,
 Convergence of returns at 176.36  
 ![q_learning_64999_0.5_0.01_100000.png](q_learning_64999_0.5_0.01_100000.png)
 ![q_learning_loss_64999_0.5_0.01_100000.png](q_learning_loss_64999_0.5_0.01_100000.png)
+
+
+
+## Discussion
+
   
    
 
