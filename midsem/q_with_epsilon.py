@@ -228,7 +228,7 @@ class QLearning:
         self.epsilon = epsilon_start
         self.epsilon_min = epsilon_end
         self.epsilon_decay_steps = epsilon_decay_steps
-        self.epsilon_decay = (epsilon_start - epsilon_end) / epsilon_decay_steps
+        self.epsilon_decay = (epsilon_start - epsilon_end) / epsilon_decay_steps # Linear decay.
         self.num_targets = num_targets
 
 
@@ -303,11 +303,9 @@ class QLearning:
         td_target = reward + self.gamma * self.Q_table[next_state_rep][best_next_action]
         td_error = td_target - self.Q_table[state_rep][action]
 
-        # Track TD error
-        self.td_errors.append(abs(td_error))
-
         # Update Q-value
         self.Q_table[state_rep][action] += self.alpha * td_error
+        self.td_errors.append(abs(td_error)) # Store TD error for plotting
 
 
 

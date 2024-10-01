@@ -18,7 +18,7 @@ Results are saved in home directory in the format ```q_learning_{num_episodes}_{
 Q-learning with epsilon-greedy is used.  
 Epsilon-greedy is implemented as decaying to balance exploration and exploitation.  
 At the early stages of training, agent should explore more to gather information about rewards associated with states and actions.   
-As agent learns over time it should exploit the its learned knowledge.  
+As agent learns over time it should exploit its learned knowledge.  
 
 High epsilon -> agent takes random actions more frequently.  
 Low epsilon -> agent chooses action with maximum q-value.  
@@ -110,7 +110,7 @@ Convergence of returns at 176.36
 | Number of Episodes (```num_episodes```) | 65000 |    
 Average Return = -7628.34,    
 Average TD error = 1546.64,    
-Convergence of returns at 176.36  
+Convergence of returns at 252.90   
 ![q_learning_64999_0.5_0.01_100000.png](q_learning_64999_0.5_0.01_100000.png)
 ![q_learning_loss_64999_0.5_0.01_100000.png](q_learning_loss_64999_0.5_0.01_100000.png)
 
