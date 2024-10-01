@@ -86,7 +86,21 @@ Epsilon Update: Decreases epsilon after each action towards epsilon_end.
 ```update(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None```  
 Updates the Q-value table using the Q-learning update rule; ```Q(s, a) = Q(s, a) + \alpha [r + \gamma max Q(s', a') - Q(s, a)]```  
 Q-Value Initialization: Ensures that Q-values for the current and next states are initialized.  
-TD Target Calculation: Finds the best next action -> calculate the TD target -> TD error calculation -> Q-value update.   
+TD Target Calculation: Finds the best next action -> calculate the TD target -> TD error calculation -> Q-value update.  
+
+
+Algorithm:  
+    Initialize the Q-table with zeros for all state-action pairs.  
+    For each episode:  
+        Reset the environment to obtain the initial state.  
+        For each step within the episode:  
+            Select an action using ```select_action```.  
+            Execute the action in the environment to receive a reward and observe the next state.  
+            Update the Q-table using ```update```.  
+            Update the current state to the next state.  
+            Terminate the episode if done.  
+    Repeat over many episodes to learn the optimal policy.  
+
 
 
 
