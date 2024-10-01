@@ -107,8 +107,8 @@ Convergence of returns at 176.36
 | Minimum epsilon (```epsilon_end```) | 0.01 |
 | Epsilon Decay Rate (```epsilon_decay_steps```) | 100000 |
 | Number of Episodes (```num_episodes```) | 65000 |    
-Average Return = -4250.63,    
-Average TD error = 634.24,    
+Average Return = -7628.34,    
+Average TD error = 1546.64,    
 Convergence of returns at 176.36  
 ![q_learning_64999_0.5_0.01_100000.png](q_learning_64999_0.5_0.01_100000.png)
 ![q_learning_loss_64999_0.5_0.01_100000.png](q_learning_loss_64999_0.5_0.01_100000.png)
