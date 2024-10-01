@@ -382,11 +382,11 @@ def main() -> None:
     state, _ = env.reset()
 
     # Hyperparameters
-    num_episodes = 100000
+    num_episodes = 14999
     alpha = 0.03  # Learning rate
     gamma = 0.99
-    epsilon_start = 0.5
-    epsilon_end = 0.01
+    epsilon_start = 0.0
+    epsilon_end = 0.0
     epsilon_decay_steps = 100000
 
     # Initialize Agent

@@ -59,14 +59,6 @@ Hyperparameter:
 | Minimum epsilon (```epsilon_end```) |
 | Epsilon Decay Rate (```epsilon_decay_steps```) |
 
-| Hyperparameter | Value |
-| -------------- | ----- |
-| Learning Rate (```alpha```) | 0.03 |
-| Discount Factor (```gamma```) | 0.99 |
-| Epsilon Start (```epsilon_start```) | 0.5 |
-| Minimum epsilon (```epsilon_end```) | 0.01 |
-| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
-
 
 Agent Initializations:  
 ```self.Q_table```: dictionary to store Q-values,  
@@ -89,21 +81,11 @@ Q-Value Initialization: Ensures that Q-values for the current and next states ar
 TD Target Calculation: Finds the best next action -> calculate the TD target -> TD error calculation -> Q-value update.  
 
 
-Algorithm:
-    Initialize the Q-table with zeros for all state-action pairs.  
-    For each episode:  
-        Reset the environment to obtain the initial state.  
-        For each step within the episode:  
-            Select an action using ```select_action```.  
-            Execute the action in the environment to receive a reward and observe the next state.  
-            Update the Q-table using ```update```.  
-            Update the current state to the next state.  
-            Terminate the episode if done.  
-    Repeat over many episodes to learn the optimal policy.  
-
-
-
-
-
-
 ## Results:
+| Hyperparameter | Value |
+| -------------- | ----- |
+| Learning Rate (```alpha```) | 0.03 |
+| Discount Factor (```gamma```) | 0.99 |
+| Epsilon Start (```epsilon_start```) | 0.0 |
+| Minimum epsilon (```epsilon_end```) | 0.0 |
+| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
