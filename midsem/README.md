@@ -89,7 +89,7 @@ Q-Value Initialization: Ensures that Q-values for the current and next states ar
 TD Target Calculation: Finds the best next action -> calculate the TD target -> TD error calculation -> Q-value update.  
 
 
-Algorithm:  
+Algorithm:
     Initialize the Q-table with zeros for all state-action pairs.  
     For each episode:  
         Reset the environment to obtain the initial state.  
