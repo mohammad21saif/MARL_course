@@ -338,7 +338,7 @@ def plot_cum_rew(ep_returns: List[float],
     plt.plot(range(window_size - 1, num_episodes), moving_avg, label='Moving Average (window size = 10)', color='red')
     plt.xlabel('Episode')
     plt.ylabel('Total Reward')
-    plt.title('Q-Learning on ModTSP: Learning Curve')
+    plt.title('Q-Learning on ModTSP: Episode vs Cumulative Reward')
     plt.legend()
     plt.grid(True)
     plt.savefig(f'q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png')
@@ -367,7 +367,7 @@ def plot_loss(loss: List[float],
     plt.plot(loss, label='TD error per Episode', alpha=0.6)
     plt.xlabel('Episode')
     plt.ylabel('TD Error')
-    plt.title('Q-Learning on ModTSP: Loss Curve')
+    plt.title('Q-Learning on ModTSP: Loss')
     plt.legend()
     plt.grid(True)
     plt.savefig(f'q_learning_loss_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png')
@@ -382,11 +382,11 @@ def main() -> None:
     state, _ = env.reset()
 
     # Hyperparameters
-    num_episodes = 14999
+    num_episodes = 64999
     alpha = 0.03  # Learning rate
     gamma = 0.99
-    epsilon_start = 0.0
-    epsilon_end = 0.0
+    epsilon_start = 0.5
+    epsilon_end = 0.01
     epsilon_decay_steps = 100000
 
     # Initialize Agent

@@ -82,17 +82,37 @@ TD Target Calculation: Finds the best next action -> calculate the TD target -> 
 
 
 ## Results:
+
 | Hyperparameter | Value |
 | -------------- | ----- |
 | Learning Rate (```alpha```) | 0.03 |
 | Discount Factor (```gamma```) | 0.99 |
-| Epsilon Start (```epsilon_start```) | 0.0 |
-| Minimum epsilon (```epsilon_end```) | 0.0 |
-| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |  
+| Epsilon Start (```epsilon_start```) | 0.5 |
+| Minimum epsilon (```epsilon_end```) | 0.01 |
+| Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
+| Number of Episodes (```num_episodes```) | 20000 |  
+Average Return = -4250.63,    
+Average TD error = 634.24,    
+Convergence of returns at 176.36  
+![q_learning_19999_0.5_0.01_300.png](q_learning_19999_0.5_0.01_300.png)
+![q_learning_loss_19999_0.5_0.01_300.png](q_learning_loss_19999_0.5_0.01_300.png)  
 
-Average Return = -2151.08,  
-Average TD error = 455.39,  
-Convergence of reward at 172.21  
-![q_learning_14999_0.0_0.0_100000.png](q_learning_14999_0.0_0.0_100000.png)
+
+
+| Hyperparameter | Value |
+| -------------- | ----- |
+| Learning Rate (```alpha```) | 0.03 |
+| Discount Factor (```gamma```) | 0.99 |
+| Epsilon Start (```epsilon_start```) | 0.5 |
+| Minimum epsilon (```epsilon_end```) | 0.01 |
+| Epsilon Decay Rate (```epsilon_decay_steps```) | 100000 |
+| Number of Episodes (```num_episodes```) | 65000 |  
+Average Return = -4250.63,    
+Average TD error = 634.24,    
+Convergence of returns at 176.36  
+![q_learning_64999_0.5_0.01_100000.png](q_learning_64999_0.5_0.01_100000.png)
+![q_learning_loss_64999_0.5_0.01_100000.png](q_learning_loss_64999_0.5_0.01_100000.png)
+  
+   
 
 
