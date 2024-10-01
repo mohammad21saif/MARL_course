@@ -92,5 +92,7 @@ TD Target Calculation: Finds the best next action -> calculate the TD target -> 
 
 Average Return = -2151.08,  
 Average TD error = 455.39,  
-Convergence of reward at 172.21
+Convergence of reward at 172.21  
+![alt text](https://github.com/mohammad21saif/MARL_course/blob/main/q_learning_14999_0.0_0.0_100000.png?raw=true)
+
 
