@@ -6,8 +6,12 @@ DEPARTMENT: EECS
 
 ## Run the Code:
 ```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install gymnasium numpy matplotlib
 python3 q_with_epsilon.py
 ```
+Results are saved in home directory.
 
 ## ANSWER:
 

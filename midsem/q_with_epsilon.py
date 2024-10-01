@@ -5,189 +5,7 @@ from numpy import typing as npt
 import matplotlib.pyplot as plt
 import random
 
-# # Define the ModTSP environment as provided
-# class ModTSP(gym.Env):
-#     """Travelling Salesman Problem (TSP) RL environment for maximizing profits.
 
-#     The agent navigates a set of targets based on precomputed distances. It aims to visit
-#     all targets to maximize profits. The profits decay with time.
-#     """
-
-#     def __init__(
-#         self,
-#         num_targets: int = 10,
-#         max_area: int = 15,
-#         shuffle_time: int = 10,
-#         seed: int = 42,
-#     ) -> None:
-#         """Initialize the TSP environment.
-
-#         Args:
-#             num_targets (int): Number of targets the agent needs to visit.
-#             max_area (int): Maximum square area where the targets are defined.
-#             shuffle_time (int): Number of episodes after which the profits are to be shuffled.
-#             seed (int): Random seed for reproducibility.
-#         """
-#         super().__init__()
-
-#         np.random.seed(seed)
-#         random.seed(seed)
-
-#         self.steps: int = 0
-#         self.episodes: int = 0
-
-#         self.shuffle_time: int = shuffle_time
-#         self.num_targets: int = num_targets
-
-#         self.max_steps: int = num_targets
-#         self.max_area: int = max_area
-
-#         self.locations: npt.NDArray[np.float32] = self._generate_points(self.num_targets)
-#         self.distances: npt.NDArray[np.float32] = self._calculate_distances(self.locations)
-
-#         # Initialize profits for each target
-#         self.initial_profits: npt.NDArray[np.float32] = np.arange(1, self.num_targets + 1, dtype=np.float32) * 10.0
-#         self.current_profits: npt.NDArray[np.float32] = self.initial_profits.copy()
-
-#         # Observation Space : {current loc (loc), target flag - visited or not, current profits, dist_array (distances), coordintates (locations)}
-#         self.obs_low = np.concatenate(
-#             [
-#                 np.array([0], dtype=np.float32),  # Current location
-#                 np.zeros(self.num_targets, dtype=np.float32),  # Check if targets were visited or not
-#                 np.zeros(self.num_targets, dtype=np.float32),  # Array of all current profits values
-#                 np.zeros(self.num_targets, dtype=np.float32),  # Distance to each target from current location
-#                 np.zeros(2 * self.num_targets, dtype=np.float32),  # Cooridinates of all targets
-#             ]
-#         )
-
-#         self.obs_high = np.concatenate(
-#             [
-#                 np.array([self.num_targets], dtype=np.float32),  # Current location
-#                 np.ones(self.num_targets, dtype=np.float32),  # Check if targets were visited or not
-#                 100 * np.ones(self.num_targets, dtype=np.float32),  # Array of all current profits values
-#                 2 * self.max_area * np.ones(self.num_targets, dtype=np.float32),  # Distance to each target from current location
-#                 self.max_area * np.ones(2 * self.num_targets, dtype=np.float32),  # Cooridinates of all targets
-#             ]
-#         )
-
-#         self.observation_space = gym.spaces.Box(low=self.obs_low, high=self.obs_high)
-#         # Action Space : {next_target}
-#         self.action_space = gym.spaces.Discrete(self.num_targets)
-
-#     def reset(
-#         self,
-#         *,
-#         seed: Optional[int] = None,
-#         options: Optional[dict] = None,
-#     ) -> Tuple[np.ndarray, Dict[str, None]]:
-#         """Reset the environment to the initial state.
-
-#         Args:
-#             seed (Optional[int], optional): Seed to reset the environment. Defaults to None.
-#             options (Optional[dict], optional): Additional reset options. Defaults to None.
-
-#         Returns:
-#             Tuple[np.ndarray, Dict[str, None]]: The initial state of the environment and an empty info dictionary.
-#         """
-#         self.steps: int = 0
-#         self.episodes += 1
-
-#         self.loc: int = 0
-#         self.visited_targets: npt.NDArray[np.float32] = np.zeros(self.num_targets)
-#         self.current_profits = self.initial_profits.copy()
-#         self.dist: List = self.distances[self.loc]
-
-#         if self.shuffle_time != 0 and self.episodes % self.shuffle_time == 0:
-#             np.random.shuffle(self.initial_profits)
-
-#         # Simplify the state representation
-#         state = np.concatenate(
-#             (
-#                 np.array([self.loc]),  # Current location index
-#                 self.visited_targets,
-#             ),
-#             dtype=np.float32,
-#         )
-#         return state, {}
-
-#     def step(self, action: int) -> Tuple[np.ndarray, float, bool, bool, Dict[str, None]]:
-#         """Take an action (move to the next target).
-
-#         Args:
-#             action (int): The index of the next target to move to.
-
-#         Returns:
-#             Tuple[np.ndarray, float, bool, bool, Dict[str, None]]:
-#                 - The new state of the environment.
-#                 - The reward for the action.
-#                 - A boolean indicating whether the episode has terminated.
-#                 - A boolean indicating if the episode is truncated.
-#                 - An empty info dictionary.
-#         """
-#         self.steps += 1
-#         past_loc = self.loc
-#         next_loc = action
-
-#         self.current_profits -= self.distances[past_loc, next_loc]
-#         reward = self._get_rewards(next_loc)
-
-#         self.visited_targets[next_loc] = 1
-
-#         next_dist = self.distances[next_loc]
-#         terminated = bool(self.steps == self.max_steps)
-#         truncated = False
-
-#         # Simplify the state representation
-#         next_state = np.concatenate(
-#             [
-#                 np.array([next_loc]),
-#                 self.visited_targets,
-#             ],
-#             dtype=np.float32,
-#         )
-
-#         self.loc, self.dist = next_loc, next_dist
-#         return (next_state, reward, terminated, truncated, {})
-
-#     def _generate_points(self, num_points: int) -> npt.NDArray[np.float32]:
-#         """Generate random 2D points representing target locations.
-
-#         Args:
-#             num_points (int): Number of points to generate.
-
-#         Returns:
-#             np.ndarray: Array of 2D coordinates for each target.
-#         """
-#         return np.random.uniform(low=0, high=self.max_area, size=(num_points, 2)).astype(np.float32)
-
-#     def _calculate_distances(self, locations: npt.NDArray[np.float32]) -> npt.NDArray[np.float32]:
-#         """Calculate the distance matrix between all target locations.
-
-#         Args:
-#             locations: List of 2D target locations.
-
-#         Returns:
-#             np.ndarray: Matrix of pairwise distances between targets.
-#         """
-#         n = len(locations)
-
-#         distances = np.zeros((n, n), dtype=np.float32)
-#         for i in range(n):
-#             for j in range(n):
-#                 distances[i, j] = np.linalg.norm(locations[i] - locations[j])
-#         return distances
-
-#     def _get_rewards(self, next_loc: int) -> float:
-#         """Calculate the reward based on the distance traveled, however if a target gets visited again then it incurs a high penalty.
-
-#         Args:
-#             next_loc (int): Next location of the agent.
-
-#         Returns:
-#             float: Reward based on the travel distance between past and next locations, or negative reward if repeats visit.
-#         """
-#         reward = self.current_profits[next_loc] if not self.visited_targets[next_loc] else -1e4
-#         return float(reward)
 
 class ModTSP(gym.Env):
     """Travelling Salesman Problem (TSP) RL environment for maximizing profits.
@@ -377,7 +195,11 @@ class ModTSP(gym.Env):
     
 
 
+
 class QLearningAgent:
+    """
+    Q-Learning Agent for the Modified TSP Environment.
+    """
     def __init__(
         self,
         alpha: float = 0.1,
@@ -387,6 +209,20 @@ class QLearningAgent:
         epsilon_decay_steps: int = 500,
         num_targets: int = 10,
     ):
+        """
+        Initialize Q-learning Agent.
+
+        Args:
+        - alpha (float): Learning rate.
+        - gamma (float): Discount factor.
+        - epsilon_start (float): Initial epsilon value.
+        - epsilon_end (float): Final epsilon value.
+        - epsilon_decay_steps (int): Number of steps to decay epsilon.
+        - num_targets (int): Number of targets in the environment.
+
+        Returns:
+        - None
+        """
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon_start
@@ -403,7 +239,7 @@ class QLearningAgent:
 
 
 
-    def _convert_state(self, state: np.ndarray) -> str:
+    def _state_to_string(self, state: np.ndarray) -> str:
         """Convert the state to a string for dictionary indexing.
 
         Args:
@@ -432,7 +268,7 @@ class QLearningAgent:
         else:
             self.epsilon = self.epsilon_min
 
-        state_str = self._convert_state(state)
+        state_str = self._state_to_string(state)
 
         if state_str not in self.Q_table:
             self.Q_table[state_str] = np.zeros(self.num_targets)  # Initialize Q-values to 0 if new state
@@ -456,8 +292,8 @@ class QLearningAgent:
         Returns:
         - None
         """
-        state_str = self._convert_state(state)
-        next_state_str = self._convert_state(next_state)
+        state_str = self._state_to_string(state)
+        next_state_str = self._state_to_string(next_state)
 
         if state_str not in self.Q_table:
             self.Q_table[state_str] = np.zeros(self.num_targets)
@@ -465,8 +301,8 @@ class QLearningAgent:
         if next_state_str not in self.Q_table:
             self.Q_table[next_state_str] = np.zeros(self.num_targets)
 
-        # Q-learning update rule: Q(s, a) = Q(s, a) + α [r + γ max Q(s', a') - Q(s, a)]
-        best_next_action = np.argmax(self.Q_table[next_state_str])  # Greedy selection of next action
+        # Update Rule
+        best_next_action = np.argmax(self.Q_table[next_state_str])
         td_target = reward + self.gamma * self.Q_table[next_state_str][best_next_action]
         td_error = td_target - self.Q_table[state_str][action]
 
@@ -478,7 +314,8 @@ class QLearningAgent:
 
 
 
-def plot_cum_rew(ep_rets: List[float], 
+
+def plot_cum_rew(ep_returns: List[float], 
                  window_size: int, 
                  num_episodes: int, 
                  moving_avg: List[float],
@@ -498,7 +335,7 @@ def plot_cum_rew(ep_rets: List[float],
     - None
     """
     plt.figure(figsize=(12, 6))
-    plt.plot(ep_rets, label='Total Reward per Episode', alpha=0.6)
+    plt.plot(ep_returns, label='Total Reward per Episode', alpha=0.6)
     plt.plot(range(window_size - 1, num_episodes), moving_avg, label='Moving Average (window size = 10)', color='red')
     plt.xlabel('Episode')
     plt.ylabel('Total Reward')
@@ -548,8 +385,8 @@ def main() -> None:
     alpha = 0.03  # Learning rate
     gamma = 0.99
     epsilon_start = 0.5
-    epsilon_end = 0.03
-    epsilon_decay_steps = 400
+    epsilon_end = 0.01
+    epsilon_decay_steps = 300
 
     # Initialize Agent
     agent = QLearningAgent(
@@ -561,7 +398,7 @@ def main() -> None:
         num_targets=num_targets,
     )
 
-    ep_rets = []
+    ep_returns = []
     loss = []
 
     for ep in range(1, num_episodes + 1):
@@ -573,33 +410,31 @@ def main() -> None:
 
             next_state, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
-            ret += reward
+            total_reward += reward
 
-            # Update agent
+            # Update agent and moving to next state
             agent.update(state, action, reward, next_state)
-
-            # Move to the next state
             state = next_state
 
             if done:
                 break
 
-        ep_rets.append(ret)
+        ep_returns.append(total_reward)
         loss.append(np.mean(agent.td_errors))
 
         # Print progress
         if ep % 10 == 0:
-            print(f"Episode {ep} : Total Reward = {ret:.2f} | Epsilon = {agent.epsilon:.3f}")
+            print(f"Episode {ep} : Total Reward = {total_reward:.2f} | Epsilon = {agent.epsilon:.3f}")
 
     # Final evaluation
-    print(f"Episodes: {num_episodes} | Average Return: {np.mean(ep_rets):.2f}")
+    print(f"Episodes: {num_episodes} | Average Return: {np.mean(ep_returns):.2f}")
     print(f"Episodes: {num_episodes} | Average TD error: {np.mean(loss):.2f}")
 
     # Plot the learning curve with moving average
     window_size = 10
-    moving_avg = np.convolve(ep_rets, np.ones(window_size) / window_size, mode='valid')
+    moving_avg = np.convolve(ep_returns, np.ones(window_size) / window_size, mode='valid')
 
-    plot_cum_rew(ep_rets, window_size, num_episodes, moving_avg, epsilon_start, epsilon_end)
+    plot_cum_rew(ep_returns, window_size, num_episodes, moving_avg, epsilon_start, epsilon_end)
     plot_loss(loss, num_episodes, epsilon_start, epsilon_end)
 
 
