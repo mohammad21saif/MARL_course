@@ -90,7 +90,7 @@ TD Target Calculation: Finds the best next action -> calculate the TD target -> 
 | Epsilon Start (```epsilon_start```) | 0.5 |
 | Minimum epsilon (```epsilon_end```) | 0.01 |
 | Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
-| Number of Episodes (```num_episodes```) | 20000 |  
+| Number of Episodes (```num_episodes```) | 20000 |   
 Average Return = -4250.63,    
 Average TD error = 634.24,    
 Convergence of returns at 176.36  
@@ -106,7 +106,7 @@ Convergence of returns at 176.36
 | Epsilon Start (```epsilon_start```) | 0.5 |
 | Minimum epsilon (```epsilon_end```) | 0.01 |
 | Epsilon Decay Rate (```epsilon_decay_steps```) | 100000 |
-| Number of Episodes (```num_episodes```) | 65000 |  
+| Number of Episodes (```num_episodes```) | 65000 |    
 Average Return = -4250.63,    
 Average TD error = 634.24,    
 Convergence of returns at 176.36  
