@@ -265,15 +265,15 @@ class QLearning:
         else:
             self.epsilon = self.epsilon_min
 
-        state_str = self._state_to_string(state)
+        state_rep = self._state_to_string(state)
 
-        if state_str not in self.Q_table:
-            self.Q_table[state_str] = np.zeros(self.num_targets)  # Initialize Q-values to 0 if new state
+        if state_rep not in self.Q_table:
+            self.Q_table[state_rep] = np.zeros(self.num_targets)  # Initialize Q-values to 0 if new state
 
         if random.random() < self.epsilon:
             return random.randrange(self.num_targets)  # Explore
         else:
-            return np.argmax(self.Q_table[state_str])  # Exploit
+            return np.argmax(self.Q_table[state_rep])  # Exploit
 
 
 
@@ -289,25 +289,25 @@ class QLearning:
         Returns:
         - None
         """
-        state_str = self._state_to_string(state)
-        next_state_str = self._state_to_string(next_state)
+        state_rep = self._state_to_string(state)
+        next_state_rep = self._state_to_string(next_state)
 
-        if state_str not in self.Q_table:
-            self.Q_table[state_str] = np.zeros(self.num_targets)
+        if state_rep not in self.Q_table:
+            self.Q_table[state_rep] = np.zeros(self.num_targets)
 
-        if next_state_str not in self.Q_table:
-            self.Q_table[next_state_str] = np.zeros(self.num_targets)
+        if next_state_rep not in self.Q_table:
+            self.Q_table[next_state_rep] = np.zeros(self.num_targets)
 
         # Update Rule
-        best_next_action = np.argmax(self.Q_table[next_state_str])
-        td_target = reward + self.gamma * self.Q_table[next_state_str][best_next_action]
-        td_error = td_target - self.Q_table[state_str][action]
+        best_next_action = np.argmax(self.Q_table[next_state_rep])
+        td_target = reward + self.gamma * self.Q_table[next_state_rep][best_next_action]
+        td_error = td_target - self.Q_table[state_rep][action]
 
         # Track TD error
         self.td_errors.append(abs(td_error))
 
         # Update Q-value
-        self.Q_table[state_str][action] += self.alpha * td_error
+        self.Q_table[state_rep][action] += self.alpha * td_error
 
 
 
