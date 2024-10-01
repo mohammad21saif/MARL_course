@@ -15,7 +15,7 @@ Results are saved in home directory in the format ```q_learning_{num_episodes}_{
 
 ## ANSWER:
 
-Q-learning without epsilon-greedy and with epsilon-greedy is used.  
+Q-learning with epsilon-greedy is used.  
 Epsilon-greedy is implemented as decaying to balance exploration and exploitation.  
 At the early stages of training, agent should explore more to gather information about rewards associated with states and actions.   
 As agent learns over time it should exploit the its learned knowledge.  
