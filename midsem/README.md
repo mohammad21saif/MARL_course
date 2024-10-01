@@ -11,7 +11,7 @@ source .venv/bin/activate
 pip3 install gymnasium numpy matplotlib
 python3 q_with_epsilon.py
 ```
-Results are saved in home directory.
+Results are saved in home directory in the format ```q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png```.
 
 ## ANSWER:
 
@@ -27,6 +27,9 @@ In the code,
 ```epsilon_start``` -> epsilon at the start of training process.   
 ```epsilon_end``` -> minimum value of epsilon decay.  
 ```epsilon_decay_steps``` -> the rate at which the epsilon value decreases.  
+
+Epsion decays by following formula:  
+```epsilon_decay = (epsilon_start - epsilon_end) / epsilon_decay_steps```
 
 
 To run without epsilon-greedy, change the following variables inside ```main()``` function.  
@@ -45,7 +48,16 @@ epsilon_end = <some value>
 ```ModeTSP``` class initialize the TSP environment.  
 
 ```QLearning``` class initializes agent for q-learning for the tsp environment.  
+
 Hyperparameter:
+
+| Hyperparameter | 
+| -------------- | 
+| Learning Rate (```alpha```) |
+| Discount Factor (```gamma```) | 
+| Epsilon Start (```epsilon_start```) |
+| Minimum epsilon (```epsilon_end```) |
+| Epsilon Decay Rate (```epsilon_decay_steps```) |
 
 | Hyperparameter | Value |
 | -------------- | ----- |
@@ -56,10 +68,22 @@ Hyperparameter:
 | Epsilon Decay Rate (```epsilon_decay_steps```) | 300 |
 
 
-Initializations:  
+Agent Initializations:  
 ```self.Q_table```: dictionary to store Q-values,  
 ```self.td_errors```: list to track td errors,  
 ```self.epsilon_decay```: rate at which epsilon decreases to shift from exploration to exploitation,  
+
+Functions:  
+
+```select_action(self, state: np.ndarray) -> int```  
+Selects action based on the current state using an epsilon-greedy policy.  
+Exploration: With probability epsilon, selects a random action.  
+Exploitation: With probability 1 - epsilon, selects the action with the highest Q-value for the current state.  
+Epsilon Update: Decreases epsilon after each action towards epsilon_end.  
+
+```update(self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray) -> None```  
+Updates the Q-value table using the Q-learning update rule; ```Q(s, a) = Q(s, a) + \alpha [r + \gamma max Q(s', a') - Q(s, a)]```
+
 
 
 

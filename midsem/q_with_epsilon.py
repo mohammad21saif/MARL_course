@@ -317,7 +317,8 @@ def plot_cum_rew(ep_returns: List[float],
                  num_episodes: int, 
                  moving_avg: List[float],
                  epsilon_start: float,
-                 epsilon_end: float) -> None:
+                 epsilon_end: float,
+                 epsilon_decay_steps: int) -> None:
     """Plot the learning curve for the Q-Learning algorithm.
 
     Args:
@@ -327,6 +328,7 @@ def plot_cum_rew(ep_returns: List[float],
     - moving_avg (List[float]): List of moving average rewards.
     - epsilon_start (float): Initial epsilon value.
     - epsilon_end (float): Final epsilon value.
+    - epsilon_decay_steps (int): Number of steps to decay epsilon.
 
     Returns:
     - None
@@ -339,7 +341,7 @@ def plot_cum_rew(ep_returns: List[float],
     plt.title('Q-Learning on ModTSP: Learning Curve')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}.png')
+    plt.savefig(f'q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png')
     plt.show()
 
 
@@ -347,7 +349,8 @@ def plot_cum_rew(ep_returns: List[float],
 def plot_loss(loss: List[float], 
               num_episodes: int, 
               epsilon_start: float, 
-              epsilon_end: float) -> None:
+              epsilon_end: float,
+              epsilon_decay_steps: int) -> None:
     """Plot the loss curve for the Q-Learning algorithm.
 
     Args:
@@ -355,6 +358,7 @@ def plot_loss(loss: List[float],
     - num_episodes (int): Number of episodes run.
     - epsilon_start (float): Initial epsilon value.
     - epsilon_end (float): Final epsilon value.
+    - epsilon_decay_steps (int): Number of steps to decay epsilon.
 
     Returns:
     - None
@@ -366,7 +370,7 @@ def plot_loss(loss: List[float],
     plt.title('Q-Learning on ModTSP: Loss Curve')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'q_learning_loss_{num_episodes}_{epsilon_start}_{epsilon_end}.png')
+    plt.savefig(f'q_learning_loss_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png')
     plt.show()
 
 
@@ -378,12 +382,12 @@ def main() -> None:
     state, _ = env.reset()
 
     # Hyperparameters
-    num_episodes = 14999
+    num_episodes = 100000
     alpha = 0.03  # Learning rate
     gamma = 0.99
     epsilon_start = 0.5
     epsilon_end = 0.01
-    epsilon_decay_steps = 300
+    epsilon_decay_steps = 100000
 
     # Initialize Agent
     agent = QLearning(
@@ -431,8 +435,8 @@ def main() -> None:
     window_size = 10
     moving_avg = np.convolve(ep_returns, np.ones(window_size) / window_size, mode='valid')
 
-    plot_cum_rew(ep_returns, window_size, num_episodes, moving_avg, epsilon_start, epsilon_end)
-    plot_loss(loss, num_episodes, epsilon_start, epsilon_end)
+    plot_cum_rew(ep_returns, window_size, num_episodes, moving_avg, epsilon_start, epsilon_end, epsilon_decay_steps)
+    plot_loss(loss, num_episodes, epsilon_start, epsilon_end, epsilon_decay_steps)
 
 
 if __name__ == "__main__":
