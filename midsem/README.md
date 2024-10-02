@@ -113,6 +113,8 @@ Average TD error = 1546.64,
 Convergence of returns at 252.90   
 ![q_learning_64999_0.5_0.01_100000.png](q_learning_64999_0.5_0.01_100000.png)
 ![q_learning_loss_64999_0.5_0.01_100000.png](q_learning_loss_64999_0.5_0.01_100000.png)
+![optimal_path_ax_arrow.png](optimal_path_ax_arrow.png)
+
 
 
 
