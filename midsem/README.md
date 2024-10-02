@@ -128,7 +128,7 @@ The loss is also decreasing. In run 2, more fine-tuning is needed for the loss t
 
 
 ## Improvements
-The results can further be improved by exploring different functions for epsilon decay, hyperparameter tuning, changing the state space of the environment. Also, other techniques like DQN, SAC, etc. can also be implemented to assess the results
+The results can further be improved by exploring different functions for epsilon decay, hyperparameter tuning, changing the state space of the environment. Also, other techniques like DQN, SAC, etc. can also be implemented to assess the results.
   
    
 
