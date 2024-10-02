@@ -121,10 +121,7 @@ Convergence of returns at 252.90
 ## Discussion
 In run 1, the decay of epsilon is fast. It is exploring for less time eventually setting to epsilon = 0.01. The convergence seems to be faster.  
 
-In run 2, the decay of epsilon is reltively slow. It is getting more time to explore eventually setting to epsilon = 0.01.   The convergence is slower. It was also observed that on setting number of episodes to 100000, the total reward of episodes started to fluctuate more after crossing ~75000 episodes (Plot not shown here).  
-
-More episodes are needed for the returns to converge properly for both runs.  
-The loss is also decreasing. In run 2, more fine-tuning is needed for the loss to settle down.  
+In run 2, the decay of epsilon is reltively slow. It is getting more time to explore eventually setting to epsilon = 0.01.   The convergence is slower. It was also observed that on setting number of episodes to 100000, the total reward of episodes started to fluctuate more after crossing ~75000 episodes (Plot not shown here).    
 
 
 ## Improvements
