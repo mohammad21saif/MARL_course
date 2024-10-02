@@ -11,7 +11,7 @@ source .venv/bin/activate
 pip3 install gymnasium numpy matplotlib
 python3 q_with_epsilon.py
 ```
-Results are saved in home directory in the format ```q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png```.
+Results are saved in home directory in the format ```q_learning_{num_episodes}_{epsilon_start}_{epsilon_end}_{epsilon_decay_steps}.png```. The Q table is also saved in format ```q_table.pkl```.
 
 ## ANSWER:
 

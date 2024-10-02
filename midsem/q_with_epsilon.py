@@ -308,6 +308,7 @@ class QLearning:
         self.td_errors.append(abs(td_error)) # Store TD error for plotting
     
 
+
     def print_Q_table(self) -> None:
         """Print the Q-value table for all states.
 
@@ -318,7 +319,7 @@ class QLearning:
         for state in self.Q_table:
             print(f"Q-Values: {self.Q_table}")
 
-    # save as pickle file
+    
     def save_Q_table(self) -> None:
         """Save the Q-value table to a pickle file.
 
@@ -329,8 +330,6 @@ class QLearning:
         with open('q_table.pkl', 'wb') as f:
             pickle.dump(self.Q_table, f)
         
-
-
 
 
 def plot_cum_rew(ep_returns: List[float], 
