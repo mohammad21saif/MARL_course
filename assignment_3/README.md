@@ -29,6 +29,7 @@ Enter mode (random or None): random
 | Epsilon Decay Rate (```discount```) | 0.99 |
 
 Minimum steps for each agent to reach their goal: [13. 12. 13. 14.]  
+Actual minimum steps for agent green and yellow is 10 and for others is 13.   
 
 ![path_fixed](path_none.gif)
 
@@ -45,8 +46,9 @@ Minimum steps for each agent to reach their goal: [13. 12. 13. 14.]
 | Epsilon Decay Rate (```discount```) | 0.99 |  
 
 Minimum steps for each agent to reach their goal: [ 6. 14.  4. 10.]  
+Actual minimum steps: 0 for each agent    
 
-![path_random](path_random.gif)
+![path_random](path_random.gif)  
 
   
 
