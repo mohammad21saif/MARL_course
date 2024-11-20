@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation, FFMpegWriter
+from matplotlib.animation import FuncAnimation, PillowWriter
 import numpy as np
 
 
@@ -221,7 +221,7 @@ def train(seed: int) -> tuple:
     max_steps = 10000
     grid_size = 10
     n_agents = 4
-    
+
     global mode
     mode = input("Enter mode (random or None): ")
 
@@ -330,17 +330,18 @@ save_q_values(agents, 'q_values.npz')
 
 
 
-def create_video(env: MAPFEnv, agents: list, filename="optimal_paths.mp4", max_steps=20):
+def create_gif(env: MAPFEnv, agents: list, filename="optimal_paths.gif", max_steps=20):
     """
-    Create a video of the optimal path for all agents.
+    Create a GIF of the optimal path for all agents
 
     Parameters:
     env: MAPFEnv, the MAPF environment
     agents: list, list of QLearningAgent objects with pre-trained Q-tables
-    filename: str, name of the output video file
+    filename: str, name of the output GIF file
     max_steps: int, maximum number of steps to simulate
     """
     state = env.reset()
+    frames = []  # To store frames for the animation
     
     # Initialize the figure
     fig, ax = plt.subplots(figsize=(8, 8))
@@ -382,10 +383,12 @@ def create_video(env: MAPFEnv, agents: list, filename="optimal_paths.mp4", max_s
             ax.add_patch(plt.Rectangle((x, y), 1, 1, color=color))
             ax.text(x + 0.5, y + 0.5, str(i), color='white', ha='center', va='center')
 
+        # Perform a step
         actions = [agent.get_action(pos) for agent, pos in zip(agents, state)]
         next_state, _, done, _ = env.step(actions)
         state = next_state
 
+        # Stop animation if done
         if done:
             ani.event_source.stop()
 
@@ -393,9 +396,9 @@ def create_video(env: MAPFEnv, agents: list, filename="optimal_paths.mp4", max_s
 
     ani = FuncAnimation(fig, update, frames=max_steps, init_func=init, blit=True, interval=500)
     
-    writer = FFMpegWriter(fps=2, metadata=dict(title="Optimal Paths", artist="MAPF"))
-    ani.save(filename, writer=writer)
-    print(f"Video saved as {filename}")
+    # Save the animation as a GIF
+    ani.save(filename, writer=PillowWriter(fps=2))
+    print(f"GIF saved as {filename}")
 
 
 
@@ -416,4 +419,4 @@ def load_q_values(filename='q_values.npz', grid_size=10, n_actions=5) -> list:
 
 env_test = MAPFEnv(10, SEED, mode)
 agents = load_q_values(filename='q_values.npz', grid_size=10)
-create_video(env, agents, filename=f'path_{mode}.mp4')
+create_gif(env, agents, filename=f'path_{mode}.gif')
