@@ -28,9 +28,12 @@ Enter mode (random or None): random
 | Minimum epsilon (```learning rate```) | 0.03 |
 | Epsilon Decay Rate (```discount```) | 0.99 |
 
-Minimum steps for each agent to reach their goal: [13. 10. 15. 13.]  
-![mapf_env_fixed.png](mapf_env_fixed.png)  
-![agent_rewards_fixed.png](agent_rewards_fixed.png)
+Minimum steps for each agent to reach their goal: [13. 12. 13. 14.]  
+
+<video controls>
+  <source src="path_fixed.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 
 ## Question-2
@@ -43,11 +46,14 @@ Minimum steps for each agent to reach their goal: [13. 10. 15. 13.]
 | Minimum epsilon (```learning rate```) | 0.03 |
 | Epsilon Decay Rate (```discount```) | 0.99 |  
 
-Minimum steps for each agent to reach their goal: [14. 12. 9. 2.]  
-A random starting position is given below:  
+Minimum steps for each agent to reach their goal: [ 6. 14.  4. 10.]  
+
+<video controls>
+  <source src="path_random.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
   
-![mapf_env_random.png](mapf_env_random.png)
-![agent_rewards_random.png](agent_rewards_random.png)
+
 
 
 

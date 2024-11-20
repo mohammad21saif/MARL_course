@@ -123,8 +123,6 @@ class MAPFEnv:
             return False
 
         return True
-    
-
 
 
 
@@ -224,6 +222,7 @@ def train(seed: int) -> tuple:
     grid_size = 10
     n_agents = 4
     
+    global mode
     mode = input("Enter mode (random or None): ")
 
     env = MAPFEnv(grid_size, seed, mode)
@@ -276,7 +275,7 @@ def train(seed: int) -> tuple:
     plt.xlabel('Episode')
     plt.ylabel('Reward')
     plt.legend()
-    plt.savefig('agent_rewards_random.png')
+    plt.savefig(f'agent_rewards_{mode}.png')
     plt.show()
     
     return agent_rewards, agents, env
@@ -331,7 +330,7 @@ save_q_values(agents, 'q_values.npz')
 
 
 
-def create_video(env: MAPFEnv, agents: list, filename="optimal_paths.mp4", max_steps=100):
+def create_video(env: MAPFEnv, agents: list, filename="optimal_paths.mp4", max_steps=20):
     """
     Create a video of the optimal path for all agents.
 
@@ -415,6 +414,6 @@ def load_q_values(filename='q_values.npz', grid_size=10, n_actions=5) -> list:
     return agents
 
 
-env_test = MAPFEnv(10, SEED, 'random')
+env_test = MAPFEnv(10, SEED, mode)
 agents = load_q_values(filename='q_values.npz', grid_size=10)
-create_video(env, agents, filename='path_random.mp4')Minimum steps for each agent to reach their goal: [14. 12. 9. 2.]
+create_video(env, agents, filename=f'path_{mode}.mp4')
