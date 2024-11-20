@@ -30,10 +30,8 @@ Enter mode (random or None): random
 
 Minimum steps for each agent to reach their goal: [13. 12. 13. 14.]  
 
-<video controls>
-  <source src="path_fixed.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![path_fixed](path_none.gif)
+
 
 
 ## Question-2
@@ -48,10 +46,8 @@ Minimum steps for each agent to reach their goal: [13. 12. 13. 14.]
 
 Minimum steps for each agent to reach their goal: [ 6. 14.  4. 10.]  
 
-<video controls>
-  <source src="path_random.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![path_random](path_random.gif)
+
   
 
 
