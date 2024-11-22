@@ -293,7 +293,7 @@ class ShipTowEnv(gym.Env):
         # Plotting obstacles
         # for (ox, oy, owidth, oheight) in self.obstacles:
         #     obs_patch = patches.Rectangle((ox, oy), width=owidth, height=oheight, edgecolor='red', facecolor='lightcoral')
-        #     self.ax.add_patch(obs_patch)
+        #     self.ax.add_patch(obs_patch
 
         # Labels and Legend
         self.ax.set_title('Ship Towing Environment')
