@@ -17,8 +17,8 @@ class ShipTowEnv(gym.Env):
                 ship_angular_velocity, 
                 tugboat_dim, 
                 max_rope_length,
-                linear_drag_coeff=1.0,    # Translational drag coefficient
-                angular_drag_coeff=3.0
+                linear_drag_coeff, 
+                angular_drag_coeff
                 ):
         """
         Observation Space:
@@ -90,7 +90,7 @@ class ShipTowEnv(gym.Env):
         return self.state
 
 
-
+    #TODO: Make the conditions better
     def check_collision(self, x, y, length, breadth, object_type='ship'):
         """
         Enhanced collision check that prevents collisions between ship, tugboats
@@ -110,6 +110,16 @@ class ShipTowEnv(gym.Env):
                 return True
         
         return False
+    
+
+    #TODO: give high negative penalty for collision before ending the episode, also add some reward as ship is getting closer to dock
+    def give_reward(self, collision, new_ds, thetas):
+        reward = -1  # Default small penalty
+        if collision:
+            reward -= 50  # High penalty for hitting an obstacle
+        if new_ds <= 0.5 and abs(thetas) < 0.1:
+            reward += 100  # High positive reward if docking is successful
+
 
 
     def step(self, action):
@@ -209,12 +219,8 @@ class ShipTowEnv(gym.Env):
 
         # Collision check
         collision = False
-        # Adjust reward
-        reward = -1  # Default small penalty
-        if collision:
-            reward -= 50  # High penalty for hitting an obstacle
-        if new_ds <= 0.5 and abs(thetas) < 0.1:
-            reward += 100  # High positive reward if docking is successful
+
+        reward = self.give_reward(collision, new_ds, thetas)
 
         # End the episode if docked correctly
         done = new_ds <= 0.5
@@ -306,37 +312,23 @@ class ShipTowEnv(gym.Env):
 
 
 
-#env variables
-grid_size = 500
-dock_position = (200, 450)
+
 target_position = (250, 400)
-frame_update = 0.01
-
-#ship variables
-ship_dim = (50,8) # (length, breadth)
-ship_mass = 5.0
-ship_inertia = 0.1
-ship_velocity = 0.025
-ship_angular_velocity = 0.0000000001
 
 
-#tugboat variables
-tugboat_dim = (5,2) # (length, breadth)
-max_rope_length = 10.0
-
-
-
-env = ShipTowEnv(grid_size=grid_size,
-                dock_position=dock_position, 
-                target_position=target_position,
-                frame_update=frame_update,
-                ship_dim=ship_dim, 
-                ship_mass=ship_mass, 
-                ship_inertia=ship_inertia,
-                ship_velocity=ship_velocity,
-                ship_angular_velocity=ship_angular_velocity, 
-                tugboat_dim=tugboat_dim, 
-                max_rope_length=max_rope_length
+env = ShipTowEnv(grid_size=500,
+                dock_position=(200, 450), 
+                target_position=(250, 400),
+                frame_update=0.01,
+                ship_dim=(50,8),  # (length, breadth)
+                ship_mass=5.0, 
+                ship_inertia=0.1,
+                ship_velocity=0.025,
+                ship_angular_velocity=0.0000000001, 
+                tugboat_dim=(5,2),  # (length, breadth)
+                max_rope_length=10.0,
+                linear_drag_coeff=1.0,
+                angular_drag_coeff=3.0
                 )
 
 state = env.reset()
