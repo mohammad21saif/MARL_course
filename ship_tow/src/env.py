@@ -4,98 +4,108 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-class ShipTowEnv(gym.Env):
+class MultiAgentShipTowEnv(gym.Env):
     def __init__(self,
-                grid_size,
-                dock_position, 
-                target_position,
-                frame_update,
-                ship_dim, 
-                ship_mass, 
-                ship_inertia,
-                ship_velocity,
-                ship_angular_velocity, 
-                tugboat_dim, 
-                max_rope_length,
-                linear_drag_coeff, 
-                angular_drag_coeff
+                grid_size=500,
+                dock_position=(200, 450),
+                target_position=(250, 400),
+                frame_update=0.01,
+                ship_dim=(60, 8),
+                ship_mass=6.0,
+                ship_inertia=0.1,
+                ship_velocity=0.025,
+                ship_angular_velocity=0.001,
+                tugboat_dim=(5, 2),
+                max_rope_length=10.0,
+                linear_drag_coeff=1.0,
+                angular_drag_coeff=3.0
                 ):
-        """
-        Observation Space:
-        Type: Box(11)
-
-        Action Space:
-        Type: Box(5)
-
-        """
+        super().__init__()
+        
+        # Environment parameters
         self.grid_size = grid_size
         self.dock_position = dock_position
         self.target_position = target_position
         self.dt = frame_update
-
-        self.ship_dim = ship_dim # [length, breadth]
+        
+        # Ship parameters
+        self.ship_dim = ship_dim
         self.ship_mass = ship_mass
         self.ship_inertia = ship_inertia
-        self.ship_velocity = ship_velocity
+        self.ship_velocity = np.array([ship_velocity, ship_velocity])
         self.angular_velocity = ship_angular_velocity
-
-        self.tugboat_dim = tugboat_dim # [length, breadth]
+        
+        # Tugboat parameters
+        self.tugboat_dim = tugboat_dim
         self.max_rope_length = max_rope_length
         self.front_offset = ship_dim[0]
         self.z = np.sqrt((self.ship_dim[0]**2) + (self.ship_dim[1]**2))
-
-        # [xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l]
-        #TODO: Fix low and high values
-        self.observation_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0, 0.0, -np.pi/2, 0.0, 0.0, -np.pi/2, 0.0, 0.0]),
-                                            high=np.array([100.0, 100.0, 2 * np.pi, 100.0, 100.0, np.pi/2, 100.0, 100.0, np.pi/2, 100.0, 100.0]),
-                                            dtype=np.float32)
         
-        #TODO: first try with action space consisting of x, y velocity components of tugboats
-        # [Ft1, Ft2, alphat1, alphat2, taus]
-        # self.action_space = spaces.Box(low=np.array([0.0, 0.0, -np.pi, -np.pi, 0.0]),
-        #                                high=np.array([100.0, 100.0, np.pi, np.pi, 10.0]),
-        #                                dtype=np.float32)
-        self.action_space = spaces.Box(low=np.array([0.0, 0.0, 0.0, 0.0]),
-                                       high=np.array([10.0, 10.0, 10.0, 10.0]),
-                                       dtype=np.float32)
-
-        self.obstacles = [
-            (0, 150, 200, 50)
-        ] # (x, y, width, height)
-
+        # Physics parameters
         self.linear_drag_coeff = linear_drag_coeff
         self.angular_drag_coeff = angular_drag_coeff
+
+        # Define action spaces for each agent (tugboat)
+        self.action_spaces = {
+            'tugboat_1': spaces.Box(
+                low=np.array([0.0, 0.0]),
+                high=np.array([10.0, 10.0]),
+                dtype=np.float32
+            ),
+            'tugboat_2': spaces.Box(
+                low=np.array([0.0, 0.0]),
+                high=np.array([10.0, 10.0]),
+                dtype=np.float32
+            )
+        }
+
+        # Define observation spaces for each agent
+        self.observation_spaces = {
+            'tugboat_1': spaces.Box(
+                low=np.float32(-np.inf),
+                high=np.float32(np.inf),
+                shape=(11,),
+                dtype=np.float32
+            ),
+            'tugboat_2': spaces.Box(
+                low=np.float32(-np.inf),
+                high=np.float32(np.inf),
+                shape=(11,),
+                dtype=np.float32
+            )
+        }
+
+        self.obstacles = [(0, 150, 200, 50)]  # (x, y, width, height)
+
         
-        self.reset()
 
-
-    def seed(self, seed=None):
-        self.np_random = np.random.RandomState(seed)
-        return [seed]
-
-
-    def reset(self):
-        # Set tugboats at front-left and front-right of the ship
-        # Calculate positions based on ship's dimensions
-        front_offset = self.ship_dim[0]
-
-        # Tugboat initial positions adjusted for front-left and front-right
-        self.state = np.array([
-            50.0, 50.0, 0.0,  # Ship initial position (xs, ys, thetas)
-            55.0 + front_offset, 50.0, 0.0,  # Tugboat 1 at front-right (xt1, yt1, thetat1)
-            55.0 + front_offset, 50.0+self.ship_dim[1], 0.0,  # Tugboat 2 at front-left (xt2, yt2, thetat2)
-            50.0,  # Distance to the target (ds)
-            3.0  # Rope length
+    def reset(self, seed=None):
+        super().reset(seed=seed)
+        
+        ship_state = np.array([
+            50.0, 50.0, 0.0,  # Ship position and orientation
         ])
-        return self.state
-
-
-    #TODO: Make the conditions better
+        
+        tugboat1_state = np.array([
+            55.0 + self.front_offset, 50.0, 0.0,  # Tugboat 1 position and orientation
+        ])
+        
+        tugboat2_state = np.array([
+            55.0 + self.front_offset, 50.0 + self.ship_dim[1], 0.0,  # Tugboat 2 position and orientation
+        ])
+        
+        self.state = np.concatenate([
+            ship_state,
+            tugboat1_state,
+            tugboat2_state,
+            [50.0],  # Distance to target #TODO: fix
+            [3.0]   # Rope length
+        ])
+        
+        return self._get_observations()
+    
     def check_collision(self, x, y, length, breadth, object_type='ship'):
-        """
-        Enhanced collision check that prevents collisions between ship, tugboats
-        and obstacles.
-        """
+        """Check for collisions with obstacles and between objects."""
         # Check obstacle collisions
         for (ox, oy, owidth, oheight) in self.obstacles:
             if (x < ox + owidth and x + length > ox and
@@ -111,46 +121,72 @@ class ShipTowEnv(gym.Env):
         
         return False
     
-
-    #TODO: give high negative penalty for collision before ending the episode, also add some reward as ship is getting closer to dock
-    def give_reward(self, collision, new_ds, thetas):
-        reward = -1  # Default small penalty
-        if collision:
-            reward -= 50  # High penalty for hitting an obstacle
-        if new_ds <= 0.5 and abs(thetas) < 0.1:
-            reward += 100  # High positive reward if docking is successful
-
-
-
-    def step(self, action):
-        vx1, vy1, vx2, vy2 = action
-
+    def _get_observations(self):
+        """Returns observations for each agent."""
+        xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
+        
+        # Construct observations for each tugboat
+        obs_tugboat1 = np.array([
+            xs, ys, thetas,          # Ship state
+            xt1, yt1, thetat1,       # Own state
+            xt2, yt2,                # Other tugboat position
+            ds, l,                   # Distance to target and rope length
+            self._get_reward('tugboat_1')  # Own reward
+        ])
+        
+        obs_tugboat2 = np.array([
+            xs, ys, thetas,          # Ship state
+            xt2, yt2, thetat2,       # Own state
+            xt1, yt1,                # Other tugboat position
+            ds, l,                   # Distance to target and rope length
+            self._get_reward('tugboat_2')  # Own reward
+        ])
+        
+        return {
+            'tugboat_1': obs_tugboat1,
+            'tugboat_2': obs_tugboat2
+        }
+    
+    def _get_reward(self, agent_id):
+        """Calculate reward for specific agent."""
+        xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
+        
+        # Base reward based on progress toward target
+        reward = -ds / self.grid_size
+        
+        # Penalty for stretching rope too much
+        if agent_id == 'tugboat_1':
+            rope_length = np.linalg.norm(np.array([xt1, yt1]) - np.array([xs, ys]))
+        else:
+            rope_length = np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))
+            
+        if rope_length > self.max_rope_length:
+            reward -= (rope_length - self.max_rope_length)
+        
+        # Success reward
+        if ds < 5.0 and abs(thetas) < 0.1:
+            reward += 100.0
+            
+        # Collision penalty
+        if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'):
+            reward -= 50.0
+            
+        return reward
+    
+    def step(self, actions):
+        """Execute one time step within the environment."""
+        # Extract actions
+        vx1, vy1 = actions['tugboat_1']
+        vx2, vy2 = actions['tugboat_2']
+        
         # Unpack the state
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
 
-
-        # Compute the single attachment point at the center front of the ship
+        # Compute attachment points
         P_fr = np.array([xs + self.front_offset * np.cos(thetas),
-                        ys + self.front_offset * np.sin(thetas)])  # front right of ship
+                        ys + self.front_offset * np.sin(thetas)])
         P_fl = np.array([xs + self.z*np.cos(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0])),
-                         ys + self.z*np.sin(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0]))])
-
-        # Predict new tugboat positions
-        new_xt1 = xt1 + vx1 * self.dt
-        new_yt1 = yt1 + vy1 * self.dt
-        new_xt2 = xt2 + vx2 * self.dt
-        new_yt2 = yt2 + vy2 * self.dt
-
-        # Check for potential collisions before updating positions
-        # if self.check_collision(new_xt1 - self.tugboat_dim[0] / 2, 
-        #                         new_yt1 - self.tugboat_dim[1] / 2, 
-        #                         *self.tugboat_dim, 'tugboat'):
-        #     vx1, vy1 = 0, 0  # Stop tugboat 1 if collision detected
-
-        # if self.check_collision(new_xt2 - self.tugboat_dim[0] / 2, 
-        #                         new_yt2 - self.tugboat_dim[1] / 2, 
-        #                         *self.tugboat_dim, 'tugboat'):
-        #     vx2, vy2 = 0, 0  # Stop tugboat 2 if collision detected
+                        ys + self.z*np.sin(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0]))])
 
         # Update tugboat positions
         xt1 += vx1 * self.dt
@@ -158,11 +194,10 @@ class ShipTowEnv(gym.Env):
         xt2 += vx2 * self.dt
         yt2 += vy2 * self.dt
 
-        # Enforce constant rope length and connection to the single front attachment point
+        # Enforce rope length constraints
         rope1_vector = np.array([xt1, yt1]) - P_fr
         rope2_vector = np.array([xt2, yt2]) - P_fl
 
-        # Fix the lengths to the desired max_rope_length
         rope1_length = np.linalg.norm(rope1_vector)
         rope2_length = np.linalg.norm(rope2_vector)
 
@@ -172,151 +207,140 @@ class ShipTowEnv(gym.Env):
         if rope2_length > self.max_rope_length:
             xt2, yt2 = P_fl + (rope2_vector / rope2_length) * self.max_rope_length
 
-        # Update the tugboat positions to ensure constant rope lengths
-        xt1, yt1 = P_fr + rope1_vector
-        xt2, yt2 = P_fl + rope2_vector
-
-        # Compute the forces exerted by the ropes based on their new fixed positions
+        # Compute forces
         force_front_1 = (rope1_vector / self.max_rope_length) * 2.0
         force_front_2 = (rope2_vector / self.max_rope_length) * 2.0
 
-        # Calculate net force on the ship (translation)
+        # Calculate net force
         net_force = force_front_1 + force_front_2
-
-        # Add linear drag force to reduce velocity
         linear_drag_force = -self.linear_drag_coeff * self.ship_velocity
         net_force += linear_drag_force
 
-        # Calculate acceleration of the ship from the net force
-        acceleration = net_force / self.ship_mass  # a = F / m
-
-        # Update the ship's velocity based on acceleration
-        self.ship_velocity += acceleration * self.dt  # v = v + a * dt
-
-        # Update ship's position based on the new velocity
+        # Update ship position and velocity
+        acceleration = net_force / self.ship_mass
+        self.ship_velocity += acceleration * self.dt
         xs += self.ship_velocity[0] * self.dt
         ys += self.ship_velocity[1] * self.dt
 
-        # Calculate torque on the ship (rotation)
-        # Only one attachment point is used, so the torque is simpler
-        torque = (np.cross(P_fr - np.array([xs, ys]), force_front_1 + force_front_2))
-
-        # Add angular drag torque to reduce rotational velocity
+        # Calculate and apply torque
+        torque = np.cross(P_fr - np.array([xs, ys]), force_front_1 + force_front_2)
         angular_drag_torque = -self.angular_drag_coeff * self.angular_velocity
         torque += angular_drag_torque
 
-        # Calculate angular acceleration from torque
-        angular_acceleration = torque / self.ship_inertia  # alpha = τ / I
-
-        # Update angular velocity
-        self.angular_velocity += angular_acceleration * self.dt  # ω = ω + α * dt
-
-        # Update ship's orientation based on the angular velocity
+        angular_acceleration = torque / self.ship_inertia
+        self.angular_velocity += angular_acceleration * self.dt
         thetas += self.angular_velocity * self.dt
 
-        # Update the distance to the dock
-        new_ds = np.linalg.norm(np.array([xs, ys]) - np.array([250, 0])) 
+        # Update distance to target
+        new_ds = np.linalg.norm(np.array([xs, ys]) - np.array(self.target_position))
 
-        # Collision check
-        collision = False
-
-        reward = self.give_reward(collision, new_ds, thetas)
-
-        # End the episode if docked correctly
-        done = new_ds <= 0.5
-
-        # Update the state
+        # Update state
         self.state = np.array([xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, new_ds, l])
-        return np.array(self.state, dtype=np.float32), reward, done, {}
 
+        # Get observations and rewards
+        observations = self._get_observations()
+        rewards = {
+            'tugboat_1': self._get_reward('tugboat_1'),
+            'tugboat_2': self._get_reward('tugboat_2')
+        }
 
+        # Check termination
+        done = new_ds < 5.0 or self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship')
+        dones = {
+            'tugboat_1': done,
+            'tugboat_2': done,
+            '__all__': done
+        }
+
+        return observations, rewards, dones, {}
 
     def render(self):
-        # Create a figure and axis
+        """Render the environment."""
         if not hasattr(self, 'fig'):
             self.fig, self.ax = plt.subplots()
         else:
             self.ax.clear()
 
         self.ax.set_facecolor('lightblue')
-
-        # Set grid limits
-        self.ax.set_xlim(0, 500)
-        self.ax.set_ylim(0, 500)
+        self.ax.set_xlim(0, self.grid_size)
+        self.ax.set_ylim(0, self.grid_size)
         self.ax.set_aspect('equal')
+        self.ax.grid(True)
         self.ax.set_xticks(np.arange(0, 501, 50))  # 10 unit spacing for X-axis
         self.ax.set_yticks(np.arange(0, 501, 50))  # 10 unit spacing for Y-axis
         self.ax.grid(which='both', linestyle='-', linewidth=0.5, color='gray')
 
-        # Draw the dock
-        # dock_x, dock_y = self.dock_position
-        dock_patch = patches.Rectangle(xy=self.dock_position, 
-                                    width=100, 
-                                    height=30, 
-                                    edgecolor='brown', 
-                                    facecolor='sienna')
+        # Draw dock
+        dock_patch = patches.Rectangle(
+            xy=self.dock_position,
+            width=100,
+            height=30,
+            edgecolor='brown',
+            facecolor='sienna'
+        )
         self.ax.add_patch(dock_patch)
 
         # Unpack state
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
 
-        # Define the ship as a rectangle
-        ship_length, ship_breadth = self.ship_dim
+        # Draw ship
         ship_patch = patches.Rectangle(
-            (xs, ys), ship_length, ship_breadth,
-            angle=np.degrees(thetas), edgecolor='blue', facecolor='lightblue', lw=2)
-
-        # Add the ship to the plot
+            # (xs - self.ship_dim[0], ys - self.ship_dim[1]),
+            (xs, ys),
+            self.ship_dim[0],
+            self.ship_dim[1],
+            angle=np.degrees(thetas),
+            edgecolor='grey',
+            facecolor='grey'
+        )
         self.ax.add_patch(ship_patch)
 
-        # Define tugboats as smaller rectangles
-        tugboat_length, tugboat_breadth = self.tugboat_dim
-
-        # Tugboat 1
+        # Draw tugboats
         tugboat1_patch = patches.Rectangle(
-            (xt1, yt1), tugboat_length, tugboat_breadth,
-            angle=np.degrees(thetat1), edgecolor='green', facecolor='lightgreen', lw=2)
-
-        # Tugboat 2
+            (xt1 - self.tugboat_dim[0], yt1 - self.tugboat_dim[1]),
+            self.tugboat_dim[0],
+            self.tugboat_dim[1],
+            angle=np.degrees(thetat1),
+            edgecolor='green',
+            facecolor='lightgreen'
+        )
         tugboat2_patch = patches.Rectangle(
-            (xt2, yt2), tugboat_length, tugboat_breadth,
-            angle=np.degrees(thetat2), edgecolor='orange', facecolor='lightyellow', lw=2)
-
-        # Add tugboats to the plot
+            (xt2 - self.tugboat_dim[0], yt2 - self.tugboat_dim[1]),
+            self.tugboat_dim[0],
+            self.tugboat_dim[1],
+            angle=np.degrees(thetat2),
+            edgecolor='orange',
+            facecolor='lightyellow'
+        )
         self.ax.add_patch(tugboat1_patch)
         self.ax.add_patch(tugboat2_patch)
 
-        # Compute attachment points in the global frame
+        # Draw ropes
         P_fr = np.array([xs + self.front_offset * np.cos(thetas),
-                    ys + self.front_offset * np.sin(thetas)])
+                        ys + self.front_offset * np.sin(thetas)])
         P_fl = np.array([xs + self.z*np.cos(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0])),
-                         ys + self.z*np.sin(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0]))])
+                        ys + self.z*np.sin(thetas+np.arctan(self.ship_dim[1]/self.ship_dim[0]))])
 
-        # Draw ropes as lines
-        self.ax.plot([P_fr[0], xt1], [P_fr[1], yt1], '-', lw=1.5, color='black')  # Rope 1 (front)
-        self.ax.plot([P_fl[0], xt2], [P_fl[1], yt2], '-', lw=1.5, color='black')  # Rope 2 (back)
+        self.ax.plot([P_fr[0], xt1], [P_fr[1], yt1], 'k-', lw=1)
+        self.ax.plot([P_fl[0], xt2], [P_fl[1], yt2], 'k-', lw=1)
 
-        # Plotting obstacles
-        # for (ox, oy, owidth, oheight) in self.obstacles:
-        #     obs_patch = patches.Rectangle((ox, oy), width=owidth, height=oheight, edgecolor='red', facecolor='lightcoral')
-        #     self.ax.add_patch(obs_patch
+        # Draw obstacles
+        for (ox, oy, owidth, oheight) in self.obstacles:
+            obs_patch = patches.Rectangle(
+                (ox, oy),
+                width=owidth,
+                height=oheight,
+                edgecolor='red',
+                facecolor='lightcoral'
+            )
+            self.ax.add_patch(obs_patch)
 
-        # Labels and Legend
-        self.ax.set_title('Ship Towing Environment')
-        self.ax.legend(loc='upper right')
-        self.ax.grid(True)
-
-        # Display the plot
-        plt.pause(0.001)  # Small pause to update the plot
+        plt.pause(0.001)
         plt.draw()
 
-
-
-
-target_position = (250, 400)
-
-
-env = ShipTowEnv(grid_size=500,
+if __name__ == "__main__":
+    # Create environment
+    env = MultiAgentShipTowEnv(grid_size=500,
                 dock_position=(200, 450), 
                 target_position=(250, 400),
                 frame_update=0.01,
@@ -324,22 +348,31 @@ env = ShipTowEnv(grid_size=500,
                 ship_mass=5.0, 
                 ship_inertia=0.1,
                 ship_velocity=0.025,
-                ship_angular_velocity=0.0000000001, 
+                ship_angular_velocity=0.001, 
                 tugboat_dim=(5,2),  # (length, breadth)
                 max_rope_length=10.0,
                 linear_drag_coeff=1.0,
                 angular_drag_coeff=3.0
                 )
+    
+    observations = env.reset()
+    done = False
 
-state = env.reset()
-done = False
+    # Get target position from environment
+    target_position = env.target_position
 
-while not done:
-    action = env.action_space.sample() 
-    state, reward, done, _ = env.step(action)
-    xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = state
-    if xs > target_position[0]:
-        done=True
-    env.render()
+    while not done:
+        actions = {
+            'tugboat_1': env.action_spaces['tugboat_1'].sample(),
+            'tugboat_2': env.action_spaces['tugboat_2'].sample()
+        }
 
-env.close()
+        observations, rewards, dones, _ = env.step(actions)
+        ship_x = observations['tugboat_1'][0]  
+
+        if ship_x > target_position[0] or dones['__all__']:
+            done = True
+        env.render()
+
+    env.close()
+    plt.close('all')
