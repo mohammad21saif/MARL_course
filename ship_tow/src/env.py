@@ -8,6 +8,7 @@ class MultiAgentShipTowEnv(gym.Env):
     def __init__(self,
                 grid_size=500,
                 dock_position=(200, 450),
+                dock_dim=(100, 80),
                 target_position=(250, 400),
                 frame_update=0.01,
                 ship_dim=(60, 8),
@@ -25,6 +26,7 @@ class MultiAgentShipTowEnv(gym.Env):
         # Environment parameters
         self.grid_size = grid_size
         self.dock_position = dock_position
+        self.dock_dim = dock_dim
         self.target_position = target_position
         self.dt = frame_update
         
@@ -41,7 +43,7 @@ class MultiAgentShipTowEnv(gym.Env):
         self.front_offset = ship_dim[0]
         self.z = np.sqrt((self.ship_dim[0]**2) + (self.ship_dim[1]**2))
         
-        # Physics parameters
+        # Water drag
         self.linear_drag_coeff = linear_drag_coeff
         self.angular_drag_coeff = angular_drag_coeff
 
@@ -62,21 +64,55 @@ class MultiAgentShipTowEnv(gym.Env):
         # Define observation spaces for each agent
         self.observation_spaces = {
             'tugboat_1': spaces.Box(
-                low=np.float32(-np.inf),
-                high=np.float32(np.inf),
-                shape=(11,),
-                dtype=np.float32
-            ),
+                low=np.array([
+                        0.0,                    # min x position (ship)
+                        0.0,                    # min y position (ship)
+                        -np.pi,                 # min rotation (ship)
+                        0.0,                    # min x position (own tugboat)
+                        0.0,                    # min y position (own tugboat)
+                        -np.pi,                 # min rotation (own tugboat)
+                        0.0,                    # min x position (other tugboat)
+                        0.0,                    # min y position (other tugboat)
+                        0.5,                    # min distance to target
+                            ], dtype=np.float32),
+                high=np.array([
+                        self.grid_size,         # max x position (ship)
+                        self.grid_size,         # max y position (ship)
+                        np.pi,                  # max rotation (ship)
+                        self.grid_size,         # max x position (own tugboat)
+                        self.grid_size,         # max y position (own tugboat)
+                        np.pi,                  # max rotation (own tugboat)
+                        self.grid_size,         # max x position (other tugboat)
+                        self.grid_size,         # max y position (other tugboat)
+                        np.sqrt(2)*self.grid_size, # max possible distance (diagonal)
+                            ], dtype=np.float32)),
             'tugboat_2': spaces.Box(
-                low=np.float32(-np.inf),
-                high=np.float32(np.inf),
-                shape=(11,),
-                dtype=np.float32
+                low=np.array([
+                        0.0,                    # min x position (ship)
+                        0.0,                    # min y position (ship)
+                        -np.pi,                 # min rotation (ship)
+                        0.0,                    # min x position (own tugboat)
+                        0.0,                    # min y position (own tugboat)
+                        -np.pi,                 # min rotation (own tugboat)
+                        0.0,                    # min x position (other tugboat)
+                        0.0,                    # min y position (other tugboat)
+                        0.5,                    # min distance to target
+                            ], dtype=np.float32),
+                high=np.array([
+                        self.grid_size,         # max x position (ship)
+                        self.grid_size,         # max y position (ship)
+                        np.pi,                  # max rotation (ship)
+                        self.grid_size,         # max x position (own tugboat)
+                        self.grid_size,         # max y position (own tugboat)
+                        np.pi,                  # max rotation (own tugboat)
+                        self.grid_size,         # max x position (other tugboat)
+                        self.grid_size,         # max y position (other tugboat)
+                        np.sqrt(2)*self.grid_size, # max possible distance (diagonal)
+                            ], dtype=np.float32)
             )
         }
 
         self.obstacles = [(0, 150, 200, 50)]  # (x, y, width, height)
-
         
 
     def reset(self, seed=None):
@@ -104,6 +140,7 @@ class MultiAgentShipTowEnv(gym.Env):
         
         return self._get_observations()
     
+
     def check_collision(self, x, y, length, breadth, object_type='ship'):
         """Check for collisions with obstacles and between objects."""
         # Check obstacle collisions
@@ -121,6 +158,7 @@ class MultiAgentShipTowEnv(gym.Env):
         
         return False
     
+
     def _get_observations(self):
         """Returns observations for each agent."""
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
@@ -194,7 +232,7 @@ class MultiAgentShipTowEnv(gym.Env):
         xt2 += vx2 * self.dt
         yt2 += vy2 * self.dt
 
-        # Enforce rope length constraints
+        # Rope length constraints
         rope1_vector = np.array([xt1, yt1]) - P_fr
         rope2_vector = np.array([xt2, yt2]) - P_fl
 
@@ -232,7 +270,7 @@ class MultiAgentShipTowEnv(gym.Env):
         thetas += self.angular_velocity * self.dt
 
         # Update distance to target
-        new_ds = np.linalg.norm(np.array([xs, ys]) - np.array(self.target_position))
+        new_ds = np.linalg.norm(np.array([xs+self.front_offset, ys+self.front_offset]) - np.array(self.target_position))
 
         # Update state
         self.state = np.array([xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, new_ds, l])
@@ -254,6 +292,7 @@ class MultiAgentShipTowEnv(gym.Env):
 
         return observations, rewards, dones, {}
 
+
     def render(self):
         """Render the environment."""
         if not hasattr(self, 'fig'):
@@ -266,15 +305,15 @@ class MultiAgentShipTowEnv(gym.Env):
         self.ax.set_ylim(0, self.grid_size)
         self.ax.set_aspect('equal')
         self.ax.grid(True)
-        self.ax.set_xticks(np.arange(0, 501, 50))  # 10 unit spacing for X-axis
-        self.ax.set_yticks(np.arange(0, 501, 50))  # 10 unit spacing for Y-axis
+        self.ax.set_xticks(np.arange(0, self.grid_size+1, 50))  # 10 unit spacing for X-axis
+        self.ax.set_yticks(np.arange(0, self.grid_size+1, 50))  # 10 unit spacing for Y-axis
         self.ax.grid(which='both', linestyle='-', linewidth=0.5, color='gray')
 
         # Draw dock
         dock_patch = patches.Rectangle(
             xy=self.dock_position,
-            width=100,
-            height=30,
+            width=self.dock_dim[0],
+            height=self.dock_dim[1],
             edgecolor='brown',
             facecolor='sienna'
         )
@@ -297,18 +336,18 @@ class MultiAgentShipTowEnv(gym.Env):
 
         # Draw tugboats
         tugboat1_patch = patches.Rectangle(
-            (xt1 - self.tugboat_dim[0], yt1 - self.tugboat_dim[1]),
+            (xt1, yt1),
             self.tugboat_dim[0],
             self.tugboat_dim[1],
-            angle=np.degrees(thetat1),
+            angle=np.degrees(thetas),
             edgecolor='green',
             facecolor='lightgreen'
         )
         tugboat2_patch = patches.Rectangle(
-            (xt2 - self.tugboat_dim[0], yt2 - self.tugboat_dim[1]),
+            (xt2 , yt2),
             self.tugboat_dim[0],
             self.tugboat_dim[1],
-            angle=np.degrees(thetat2),
+            angle=np.degrees(thetas),
             edgecolor='orange',
             facecolor='lightyellow'
         )
@@ -340,20 +379,7 @@ class MultiAgentShipTowEnv(gym.Env):
 
 if __name__ == "__main__":
     # Create environment
-    env = MultiAgentShipTowEnv(grid_size=500,
-                dock_position=(200, 450), 
-                target_position=(250, 400),
-                frame_update=0.01,
-                ship_dim=(50,8),  # (length, breadth)
-                ship_mass=5.0, 
-                ship_inertia=0.1,
-                ship_velocity=0.025,
-                ship_angular_velocity=0.001, 
-                tugboat_dim=(5,2),  # (length, breadth)
-                max_rope_length=10.0,
-                linear_drag_coeff=1.0,
-                angular_drag_coeff=3.0
-                )
+    env = MultiAgentShipTowEnv()
     
     observations = env.reset()
     done = False
