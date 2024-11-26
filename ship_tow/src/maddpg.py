@@ -5,7 +5,7 @@ from torch import optim
 from collections import deque
 import random
 import wandb
-from progiter import ProgIter
+from rich.progress import track
 from environment import MultiAgentShipTowEnv
 from datetime import datetime
 
@@ -15,36 +15,36 @@ wandb.init(project="marl")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = "cpu"
 
-class StateNormalizer:
-    def __init__(self):
-        self.mean = None
-        self.std = None
-        self.count = 0
-        self.first_encountered = True
+# class StateNormalizer:
+#     def __init__(self):
+#         self.mean = None
+#         self.std = None
+#         self.count = 0
+#         self.first_encountered = True
 
-    def __call__(self, x):
-        # Incrementally update mean and std
-        if self.first_encountered:
-            self.mean = np.zeros_like(x, dtype=np.float32)
-            self.std = np.zeros_like(x, dtype=np.float32)
-            self.first_encountered = False
+#     def __call__(self, x):
+#         # Incrementally update mean and std
+#         if self.first_encountered:
+#             self.mean = np.zeros_like(x, dtype=np.float32)
+#             self.std = np.zeros_like(x, dtype=np.float32)
+#             self.first_encountered = False
 
-        # Update count
-        self.count += 1
+#         # Update count
+#         self.count += 1
 
-        # Incremental mean and variance update (Welford's algorithm)
-        delta = x - self.mean
-        self.mean += delta / self.count
-        delta2 = x - self.mean
-        self.std += delta * delta2
+#         # Incremental mean and variance update (Welford's algorithm)
+#         delta = x - self.mean
+#         self.mean += delta / self.count
+#         delta2 = x - self.mean
+#         self.std += delta * delta2
 
-        # Normalize
-        if self.count > 1:
-            variance = self.std / (self.count - 1)
-            std = np.sqrt(variance + 1e-8)  # Add small epsilon to prevent division by zero
-            return (x - self.mean) / std
+#         # Normalize
+#         if self.count > 1:
+#             variance = self.std / (self.count - 1)
+#             std = np.sqrt(variance + 1e-8)  # Add small epsilon to prevent division by zero
+#             return (x - self.mean) / std
         
-        return x
+#         return x
 
 class Actor(nn.Module):
     def __init__(self, input_size, hidden_size, output_size) -> None:
@@ -79,7 +79,7 @@ class Critic(nn.Module):
 
 class MADDPGAgent:
     def __init__(self, state_size, action_size, hidden_size=128) -> None:
-        self.state_normalizer = StateNormalizer()
+        # self.state_normalizer = StateNormalizer()
     
         self.actor = Actor(state_size, hidden_size, action_size).to(device)
         self.critic = Critic(state_size, action_size, hidden_size).to(device)
@@ -119,7 +119,7 @@ class MADDPG:
 
     def train(self, n_episodes, max_steps=1000):
         best_reward = -np.inf
-        for episode in ProgIter(range(n_episodes), enabled=False, verbose=2):
+        for episode in track(range(n_episodes), description="Episodes"):
             observations = self.env.reset()
             episode_reward = 0
             done = False
@@ -213,8 +213,8 @@ class MADDPG:
     def _save_models(self):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         for i, agent in enumerate(self.agents):
-            torch.save(agent.actor.state_dict(), f'tugboat_{i+1}_{timestamp}_actor_maddpg.pth')
-            torch.save(agent.critic.state_dict(), f'tugboat_{i+1}_{timestamp}_critic_maddpg.pth')
+            torch.save(agent.actor.state_dict(), f'saved_models/tugboat_{i+1}_{timestamp}_actor_maddpg.pth')
+            # torch.save(agent.critic.state_dict(), f'tugboat_{i+1}_{timestamp}_critic_maddpg.pth')
 
 
 if __name__=='__main__':
