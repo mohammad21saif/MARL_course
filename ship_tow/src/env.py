@@ -47,7 +47,7 @@ class MultiAgentShipTowEnv(gym.Env):
         self.linear_drag_coeff = linear_drag_coeff
         self.angular_drag_coeff = angular_drag_coeff
 
-        # Define action spaces for each agent (tugboat)
+        # Action spaces for each agent (tugboat)
         self.action_spaces = {
             'tugboat_1': spaces.Box(
                 low=np.array([0.0, 0.0]),
@@ -134,7 +134,7 @@ class MultiAgentShipTowEnv(gym.Env):
             ship_state,
             tugboat1_state,
             tugboat2_state,
-            [50.0],  # Distance to target #TODO: fix
+            [],  # Distance to target #TODO: fix
             [3.0]   # Rope length
         ])
         
@@ -341,7 +341,7 @@ class MultiAgentShipTowEnv(gym.Env):
             self.tugboat_dim[1],
             angle=np.degrees(thetas),
             edgecolor='green',
-            facecolor='lightgreen'
+            facecolor='green'
         )
         tugboat2_patch = patches.Rectangle(
             (xt2 , yt2),
@@ -349,7 +349,7 @@ class MultiAgentShipTowEnv(gym.Env):
             self.tugboat_dim[1],
             angle=np.degrees(thetas),
             edgecolor='orange',
-            facecolor='lightyellow'
+            facecolor='yellow'
         )
         self.ax.add_patch(tugboat1_patch)
         self.ax.add_patch(tugboat2_patch)
