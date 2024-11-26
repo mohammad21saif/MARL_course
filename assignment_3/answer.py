@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
+<<<<<<< HEAD
 from matplotlib.animation import FuncAnimation, PillowWriter
+=======
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
 import numpy as np
 
 
@@ -123,6 +126,40 @@ class MAPFEnv:
             return False
 
         return True
+<<<<<<< HEAD
+=======
+    
+
+    # def plot_map(self):
+    #     agents_pos = [(1,1), (8,1), (8,8), (1,8)]
+    #     fig, ax = plt.subplots(figsize=(8, 8))
+    #     # Set up gridlines and limits
+    #     ax.set_xlim(0, self.grid_size)
+    #     ax.set_ylim(0, self.grid_size)
+    #     ax.set_xticks(np.arange(0, self.grid_size + 1, 1))
+    #     ax.set_yticks(np.arange(0, self.grid_size + 1, 1))
+    #     ax.grid(True)
+    #     # Set aspect of the plot to be equal
+    #     ax.set_aspect('equal')
+    #     ax.set_xlabel('X-axis')
+    #     ax.set_ylabel('Y-axis')
+    #     # Remove the axes
+    #     ax.set_xticklabels(np.arange(0, self.grid_size + 1, 1))
+    #     ax.set_yticklabels(np.arange(0, self.grid_size + 1, 1))
+    #     ax.tick_params(left=False, bottom=False)
+    #     for (x,y) in self.walls:
+    #         ax.add_patch(plt.Rectangle((x,y), 1, 1, color='grey'))
+    #     for i, (x,y) in enumerate(agents_pos):
+    #         color = self.agent_colors[i]
+    #         ax.add_patch(plt.Rectangle((x,y), 1, 1, color=color))
+    #         ax.text(x+0.5, y+0.5, str(i), color='black', ha='center', va='center')
+        
+    #     for i, (x,y) in enumerate(self.goal_pos):
+    #         color = self.agent_colors[i]
+    #         plt.plot(x+0.5, y+0.5, marker='+', color=color, mew=2, ms=10)
+    #     plt.savefig('mapf_env.png')
+
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
 
 
 
@@ -195,6 +232,7 @@ class QLearningAgent:
         self.policy[curr_x, curr_y] = np.argmax(self.q_table[curr_x, curr_y])
 
 
+<<<<<<< HEAD
     def set_q_table(self, q_table):
         '''
         Set the Q-table for the agent
@@ -206,6 +244,8 @@ class QLearningAgent:
         self.policy = np.argmax(self.q_table, axis=2)
 
 
+=======
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
 
 def train(seed: int) -> tuple:
     '''
@@ -217,12 +257,20 @@ def train(seed: int) -> tuple:
     Returns:
     tuple: agent_rewards, agents, env
     '''
+<<<<<<< HEAD
     n_episodes = 50000
     max_steps = 10000
     grid_size = 10
     n_agents = 4
 
     global mode
+=======
+    n_episodes = 9000
+    max_steps = 4000
+    grid_size = 10
+    n_agents = 4
+    
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
     mode = input("Enter mode (random or None): ")
 
     env = MAPFEnv(grid_size, seed, mode)
@@ -265,6 +313,10 @@ def train(seed: int) -> tuple:
         if episode % 100 == 0:
             print(f"Episode {episode}, Average Reward: {np.mean(episode_reward):.2f}")
     
+<<<<<<< HEAD
+=======
+    # Plot both episode rewards and cumulative rewards
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
     plt.figure(figsize=(12, 6))
     for i in range(n_agents):
         plt.plot(agent_rewards[:, i], alpha=0.4, label=f'Agent {i} Episode Reward')
@@ -275,7 +327,11 @@ def train(seed: int) -> tuple:
     plt.xlabel('Episode')
     plt.ylabel('Reward')
     plt.legend()
+<<<<<<< HEAD
     plt.savefig(f'agent_rewards_{mode}.png')
+=======
+    plt.savefig('agent_rewards_random.png')
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
     plt.show()
     
     return agent_rewards, agents, env
@@ -295,7 +351,11 @@ def find_min_steps_for_all_agents(env: MAPFEnv, agents: list) -> np.ndarray:
     steps_to_goal = np.zeros(len(agents))  # Store steps for each agent
     
     for i, agent in enumerate(agents):
+<<<<<<< HEAD
         state = env.reset()
+=======
+        state = env.reset()  # Reset environment and get initial positions of all agents
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
         agent_position = state[i]  # Get the starting position of this agent
         steps = 0
         
@@ -328,6 +388,7 @@ def save_q_values(agents, filename='q_values.npz') -> None:
 
 save_q_values(agents, 'q_values.npz')
 
+<<<<<<< HEAD
 
 
 def create_gif(env: MAPFEnv, agents: list, filename="optimal_paths.gif", max_steps=20):
@@ -420,3 +481,7 @@ def load_q_values(filename='q_values.npz', grid_size=10, n_actions=5) -> list:
 env_test = MAPFEnv(10, SEED, mode)
 agents = load_q_values(filename='q_values.npz', grid_size=10)
 create_gif(env, agents, filename=f'path_{mode}.gif')
+=======
+# env.plot_map()
+
+>>>>>>> 3ca8bfd00f8aedbfbba96f3c62a0860ed5a270cb
