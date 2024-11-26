@@ -94,7 +94,7 @@ class MADDPGAgent:
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=0.003)
 
         self.memory = deque(maxlen=100000)
-        self.batch_size = 64
+        self.batch_size = 128
         self.gamma = 0.99
         self.tau = 0.01
 
@@ -122,6 +122,8 @@ class MADDPG:
         for episode in track(range(n_episodes), description="Episodes"):
             observations = self.env.reset()
             episode_reward = 0
+            episode_reward_1 = 0
+            episode_reward_2 = 0
             done = False
             step = 0
             
@@ -152,14 +154,19 @@ class MADDPG:
                     ))
                 
                 observations = next_observations
-                episode_reward += sum(rewards.values())
+                episode_reward_1 += rewards['tugboat_1']
+                episode_reward_2 += rewards['tugboat_2']
                 step += 1
                 
                 if len(self.agents[0].memory) > self.agents[0].batch_size:
                     self._update_agents()
+                
+                # self.env.render()
             
             wandb.log({
-                "Episode Reward": episode_reward, 
+                "Episode Reward for tugboat 1": episode_reward_1,
+                "Episode Reward for tugboat 2": episode_reward_2,
+                "Episode Reward": episode_reward,
                 "Episode": episode, 
                 "Steps": step,
                 "Best Reward": best_reward
