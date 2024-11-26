@@ -6,9 +6,9 @@ import matplotlib.patches as patches
 
 class MultiAgentShipTowEnv(gym.Env):
     def __init__(self,
-                grid_size=500,
-                dock_position=(200, 450),
-                dock_dim=(100, 80),
+                grid_size=400,
+                dock_position=(200, 350),
+                dock_dim=(100, 50),
                 target_position=(250, 400),
                 frame_update=0.01,
                 ship_dim=(60, 8),
@@ -47,7 +47,7 @@ class MultiAgentShipTowEnv(gym.Env):
         self.linear_drag_coeff = linear_drag_coeff
         self.angular_drag_coeff = angular_drag_coeff
 
-        # Action spaces for each agent (tugboat)
+        # for each agent (tugboat)
         self.action_spaces = {
             'tugboat_1': spaces.Box(
                 low=np.array([0.0, 0.0]),
@@ -61,7 +61,7 @@ class MultiAgentShipTowEnv(gym.Env):
             )
         }
 
-        # Define observation spaces for each agent
+
         self.observation_spaces = {
             'tugboat_1': spaces.Box(
                 low=np.array([
@@ -112,8 +112,9 @@ class MultiAgentShipTowEnv(gym.Env):
             )
         }
 
-        self.obstacles = [(0, 150, 200, 50)]  # (x, y, width, height)
+        self.obstacles = [(0, 100, 200, 50)]  # (x, y, width, height)
         
+
 
     def reset(self, seed=None):
         super().reset(seed=seed)
@@ -123,11 +124,11 @@ class MultiAgentShipTowEnv(gym.Env):
         ])
         
         tugboat1_state = np.array([
-            55.0 + self.front_offset, 50.0, 0.0,  # Tugboat 1 position and orientation
+            55.0 + self.front_offset, 50.0, 0.0,  # pos and orientation
         ])
         
         tugboat2_state = np.array([
-            55.0 + self.front_offset, 50.0 + self.ship_dim[1], 0.0,  # Tugboat 2 position and orientation
+            55.0 + self.front_offset, 50.0 + self.ship_dim[1], 0.0,  # pos and orientation
         ])
         
         self.state = np.concatenate([
@@ -140,23 +141,6 @@ class MultiAgentShipTowEnv(gym.Env):
         
         return self._get_observations()
     
-
-    def check_collision(self, x, y, length, breadth, object_type='ship'):
-        """Check for collisions with obstacles and between objects."""
-        # Check obstacle collisions
-        for (ox, oy, owidth, oheight) in self.obstacles:
-            if (x < ox + owidth and x + length > ox and
-                y < oy + oheight and y + breadth > oy):
-                return True
-        
-        # Check ship-tugboat collisions
-        if object_type != 'ship':
-            ship_x, ship_y = self.state[0], self.state[1]
-            if (x < ship_x + self.ship_dim[0]/2 and x + length > ship_x - self.ship_dim[0]/2 and
-                y < ship_y + self.ship_dim[1]/2 and y + breadth > ship_y - self.ship_dim[1]/2):
-                return True
-        
-        return False
     
 
     def _get_observations(self):
@@ -168,7 +152,7 @@ class MultiAgentShipTowEnv(gym.Env):
             xs, ys, thetas,          # Ship state
             xt1, yt1, thetat1,       # Own state
             xt2, yt2,                # Other tugboat position
-            ds, l,                   # Distance to target and rope length
+            ds,                   # Distance to target
             self._get_reward('tugboat_1')  # Own reward
         ])
         
@@ -176,7 +160,7 @@ class MultiAgentShipTowEnv(gym.Env):
             xs, ys, thetas,          # Ship state
             xt2, yt2, thetat2,       # Own state
             xt1, yt1,                # Other tugboat position
-            ds, l,                   # Distance to target and rope length
+            ds,                   # Distance to target
             self._get_reward('tugboat_2')  # Own reward
         ])
         
@@ -185,12 +169,132 @@ class MultiAgentShipTowEnv(gym.Env):
             'tugboat_2': obs_tugboat2
         }
     
+
+    
+    def check_collision(self, x, y, length, breadth, object_type='ship'):
+        for (ox, oy, owidth, oheight) in self.obstacles:
+            if (x < ox + owidth and x + length > ox and
+                y < oy + oheight and y + breadth > oy):
+                return True
+        
+        if object_type != 'ship':
+            ship_x, ship_y = self.state[0], self.state[1]
+            if (x < ship_x + self.ship_dim[0]/2 and x + length > ship_x - self.ship_dim[0]/2 and
+                y < ship_y + self.ship_dim[1]/2 and y + breadth > ship_y - self.ship_dim[1]/2):
+                return True
+        
+        return False
+
+
+
+    # def _get_reward(self, agent_id):
+    #     """Calculate reward for specific agent."""
+    #     xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
+        
+    #     # Base reward based on progress toward target
+    #     reward = -ds / self.grid_size
+        
+    #     # Penalty for stretching rope too much
+    #     if agent_id == 'tugboat_1':
+    #         rope_length = np.linalg.norm(np.array([xt1, yt1]) - np.array([xs, ys]))
+    #     else:
+    #         rope_length = np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))
+            
+    #     if rope_length > self.max_rope_length:
+    #         reward -= (rope_length - self.max_rope_length)
+        
+    #     # Success reward
+    #     if ds < 5.0 and abs(thetas) < 0.1:
+    #         reward += 100.0
+            
+    #     # Collision penalty
+    #     if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'):
+    #         reward -= 50.0
+            
+    #     return reward
+
+    def calculate_distance_to_obstacle(self, x, y, obj_width, obj_height):
+        """Calculate minimum distance from an object to any obstacle."""
+        min_distance = float('inf')
+        
+        # object corners
+        corners = [
+            (x, y),  # Top-left
+            (x + obj_width, y),  # Top-right
+            (x, y + obj_height),  # Bottom-left
+            (x + obj_width, y + obj_height)  # Bottom-right
+        ]
+        
+        for obstacle in self.obstacles:
+            ox, oy, ow, oh = obstacle
+            
+            # obstacle corners
+            obs_corners = [
+                (ox, oy),  # Top-left
+                (ox + ow, oy),  # Top-right
+                (ox, oy + oh),  # Bottom-left
+                (ox + ow, oy + oh)  # Bottom-right
+            ]
+            
+            # Check if object is inside obstacle
+            if (x < ox + ow and x + obj_width > ox and
+                y < oy + oh and y + obj_height > oy):
+                return 0.0
+            
+            # Calculate minimum distance from any corner to obstacle edges
+            for cx, cy in corners:
+                # Calculate distances to obstacle edges
+                dx = max(ox - cx, 0, cx - (ox + ow))
+                dy = max(oy - cy, 0, cy - (oy + oh))
+                dist = np.sqrt(dx * dx + dy * dy)
+                min_distance = min(min_distance, dist)
+                
+            # Calculate minimum distance from obstacle corners to object edges
+            for cx, cy in obs_corners:
+                dx = max(x - cx, 0, cx - (x + obj_width))
+                dy = max(y - cy, 0, cy - (y + obj_height))
+                dist = np.sqrt(dx * dx + dy * dy)
+                min_distance = min(min_distance, dist)
+        
+        return min_distance
+    
+
+    def calculate_proximity_penalty(self, distance, danger_zone=40.0, max_penalty=50.0):
+        """Calculate penalty based on proximity to obstacle."""
+        if distance >= danger_zone:
+            return 0.0
+        
+        # Exponentially increasing penalty as distance decreases
+        penalty_factor = ((danger_zone - distance) / danger_zone) ** 2
+        return max_penalty * penalty_factor
+
+
     def _get_reward(self, agent_id):
         """Calculate reward for specific agent."""
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
         
         # Base reward based on progress toward target
         reward = -ds / self.grid_size
+        
+        # Calculate proximity penalties
+        ship_distance = self.calculate_distance_to_obstacle(
+            xs, ys, self.ship_dim[0], self.ship_dim[1]
+        )
+        ship_penalty = self.calculate_proximity_penalty(ship_distance)
+        
+        # Calculate tugboat penalties
+        if agent_id == 'tugboat_1':
+            tug_pos = (xt1, yt1)
+        else:
+            tug_pos = (xt2, yt2)
+            
+        tug_distance = self.calculate_distance_to_obstacle(
+            tug_pos[0], tug_pos[1], self.tugboat_dim[0], self.tugboat_dim[1]
+        )
+        tug_penalty = self.calculate_proximity_penalty(tug_distance)
+        
+        # Apply penalties
+        reward -= (ship_penalty + tug_penalty)
         
         # Penalty for stretching rope too much
         if agent_id == 'tugboat_1':
@@ -205,9 +309,9 @@ class MultiAgentShipTowEnv(gym.Env):
         if ds < 5.0 and abs(thetas) < 0.1:
             reward += 100.0
             
-        # Collision penalty
+        # Immediate collision penalty
         if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'):
-            reward -= 50.0
+            reward -= 100.0
             
         return reward
     
@@ -282,8 +386,13 @@ class MultiAgentShipTowEnv(gym.Env):
             'tugboat_2': self._get_reward('tugboat_2')
         }
 
+        done = False
         # Check termination
-        done = new_ds < 5.0 or self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship')
+        done_tugboat_1 = self.check_collision(xt1, yt1, self.tugboat_dim[0], self.tugboat_dim[1], 'tugboat')
+        done_tugboat_2 = self.check_collision(xt2, yt2, self.tugboat_dim[0], self.tugboat_dim[1], 'tugboat')
+        done_ship = new_ds < 5.0 or self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship')
+        if done_tugboat_1 or done_tugboat_2 or done_ship:
+            done = True
         dones = {
             'tugboat_1': done,
             'tugboat_2': done,
@@ -394,6 +503,7 @@ if __name__ == "__main__":
         }
 
         observations, rewards, dones, _ = env.step(actions)
+        print(f"Rewards: {rewards}")
         ship_x = observations['tugboat_1'][0]  
 
         if ship_x > target_position[0] or dones['__all__']:
