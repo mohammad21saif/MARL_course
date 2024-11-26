@@ -100,7 +100,7 @@ class MultiAgentShipTowEnv(gym.Env):
                         -np.pi,                 # min rotation (own tugboat)
                         0.0,                    # min x position (other tugboat)
                         0.0,                    # min y position (other tugboat)
-                        -np.pi,                  # min rotation (other tugboat)
+                        -np.pi,                 # min rotation (other tugboat)
                         0.5,                    # min distance to target
                         0.0                     # min rope length
                             ], dtype=np.float32),
@@ -296,11 +296,11 @@ class MultiAgentShipTowEnv(gym.Env):
         return max_penalty * penalty_factor
 
 
-    def _get_reward(self, agent_id):
+    def _get_reward(self, agent_id, new_ds):
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
         
         # Base reward based on progress toward target
-        reward = -ds / (self.grid_size*0.5)
+        reward = -ds / (self.grid_size*0.005)
         
         # Calculate proximity penalties
         ship_distance = self.calculate_distance_to_obstacle(
@@ -331,11 +331,13 @@ class MultiAgentShipTowEnv(gym.Env):
         if rope_length > self.max_rope_length:
             reward -= (rope_length - self.max_rope_length)
         
+        if new_ds < ds:
+            reward += 50
         # Success reward
         # if ds < 6.0 and abs(thetas) < 0.1:
         #     reward += 1000.0
         if self.inside_target(xs, ys):
-            reward += 1000
+            reward += 100000
             
         # Immediate collision penalty
         # if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'): # replace agent_id with ship
@@ -406,8 +408,8 @@ class MultiAgentShipTowEnv(gym.Env):
         # Get observations and rewards
         observations = self._get_observations()
         rewards = {
-            'tugboat_1': self._get_reward('tugboat_1'),
-            'tugboat_2': self._get_reward('tugboat_2')
+            'tugboat_1': self._get_reward('tugboat_1', new_ds),
+            'tugboat_2': self._get_reward('tugboat_2', new_ds)
         }
 
         done = False
@@ -511,28 +513,28 @@ class MultiAgentShipTowEnv(gym.Env):
         plt.pause(0.001)
         plt.draw()
 
-if __name__ == "__main__":
-    # Create environment
-    env = MultiAgentShipTowEnv()
+# if __name__ == "__main__":
+#     # Create environment
+#     env = MultiAgentShipTowEnv()
     
-    observations = env.reset()
-    done = False
+#     observations = env.reset()
+#     done = False
 
-    target_position = env.target_position
+#     target_position = env.target_position
 
-    while not done:
-        actions = {
-            'tugboat_1': env.action_space['tugboat_1'].sample(),
-            'tugboat_2': env.action_space['tugboat_2'].sample()
-        }
+#     while not done:
+#         actions = {
+#             'tugboat_1': env.action_space['tugboat_1'].sample(),
+#             'tugboat_2': env.action_space['tugboat_2'].sample()
+#         }
 
-        observations, rewards, dones, _ = env.step(actions)
-        print(f"Rewards: {rewards}")
-        ship_x = observations['tugboat_1'][0]  
+#         observations, rewards, dones, _ = env.step(actions)
+#         print(f"Rewards: {rewards}")
+#         ship_x = observations['tugboat_1'][0]  
 
-        if dones['__all__']:
-            done = True
-        env.render()
+#         if dones['__all__']:
+#             done = True
+#         env.render()
 
-    env.close()
-    plt.close('all')
+#     env.close()
+#     plt.close('all')
