@@ -16,6 +16,7 @@ def load_best_model(env, model_dir='saved_models'):
     if not actor_files:
         raise FileNotFoundError("No trained models found in the saved_models directory.")
     
+    
     # Setup agents
     state_size = env.observation_space['tugboat_1'].shape[0]
     action_size = env.action_space['tugboat_1'].shape[0]
@@ -29,7 +30,7 @@ def load_best_model(env, model_dir='saved_models'):
     
     return agents
 
-def test_and_visualize_trajectory(env, agents, max_steps=500, save_path='trajectory_visualization.png'):
+def test_and_visualize_trajectory(env, agents, max_steps=1000000, save_path='trajectory_visualization.png'):
     """
     Test the trained model and create a detailed trajectory visualization.
     """
