@@ -22,6 +22,9 @@ class MultiAgentShipTowEnv(gym.Env):
                 linear_drag_coeff=0.5,
                 angular_drag_coeff=4.0
                 ):
+        """
+        Initialize the environment.
+        """
         super().__init__()
         
         # Environment parameters
@@ -135,7 +138,13 @@ class MultiAgentShipTowEnv(gym.Env):
         
 
 
-    def reset(self):
+    def reset(self) -> dict:
+        """
+        Reset the environment.
+
+        Returns:
+            observations (dict): Observations for each agent.
+        """
         ship_state = np.array([
             50.0, 50.0, 0.0,  # Ship position and orientation
         ])
@@ -160,8 +169,13 @@ class MultiAgentShipTowEnv(gym.Env):
     
     
 
-    def _get_observations(self):
-        """Returns observations for each agent."""
+    def _get_observations(self) -> dict:
+        """
+        Get observations for each agent.
+
+        Returns:
+            observations (dict): Observations for each agent.
+        """
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
         
         obs_tugboat1 = np.array([
@@ -177,7 +191,7 @@ class MultiAgentShipTowEnv(gym.Env):
             xt2, yt2, thetat2,       # Own state
             xt1, yt1, thetat1,         # Other tugboat state
             ds,                   # Distance to target
-            np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))  # Own reward
+            np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))  # rope length
         ])
         
         return {
@@ -186,7 +200,21 @@ class MultiAgentShipTowEnv(gym.Env):
         }
     
 
-    def extract_corners(self, x, y, l, b, theta):
+    def extract_corners(self, x, y, l, b, theta) -> tuple:
+        """
+        Extract corners of the object.
+
+        Args:
+            x (float): x position of the object.
+            y (float): y position of the object.
+            l (float): length of the object.
+            b (float): breadth of the object.
+            theta (float): orientation of the object.
+        
+        Returns:
+            obj_d (float): diagonal length of the object.
+            obj_corner (list): list of corners of the object.
+        """
         obj_d = np.sqrt(l**2 + b**2)
         obj_corner = [
             (x, y),
@@ -198,7 +226,20 @@ class MultiAgentShipTowEnv(gym.Env):
         return obj_d, obj_corner
 
     
-    def check_collision(self, x, y, l, b, theta):
+    def check_collision(self, x, y, l, b, theta) -> bool:
+        """
+        Check collision of the object with obstacles.
+
+        Args:
+            x (float): x position of the object.
+            y (float): y position of the object.
+            l (float): length of the object.
+            b (float): breadth of the object.
+            theta (float): orientation of the object.
+
+        Returns:
+            collision (bool): True if collision occurs, False otherwise.
+        """
         obj_d, obj_corner = self.extract_corners(x, y, l, b, theta)
 
         for obstacle in self.obstacles:
@@ -213,34 +254,20 @@ class MultiAgentShipTowEnv(gym.Env):
 
 
 
-    # def _get_reward(self, agent_id):
-    #     """Calculate reward for specific agent."""
-    #     xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
-        
-    #     # Base rewardowidth, oheigh based on progress toward target
-    #     reward = -ds / self.grid_size
-        
-    #     # Penalty for stretching rope too much
-    #     if agent_id == 'tugboat_1':
-    #         rope_length = np.linalg.norm(np.array([xt1, yt1]) - np.array([xs, ys]))
-    #     else:
-    #         rope_length = np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))
-            
-    #     if rope_length > self.max_rope_length:
-    #         reward -= (rope_length - self.max_rope_length)
-        
-    #     # Success reward
-    #     if ds < 5.0 and abs(thetas) < 0.1:
-    #         reward += 100.0
-            
-    #     # Collision penalty
-    #     if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'):
-    #         reward -= 50.0
-            
-    #     return reward
+    def calculate_distance_to_obstacle(self, x, y, l, b, theta) -> float:
+        """
+        Calculate distance to obstacle.
 
-    def calculate_distance_to_obstacle(self, x, y, l, b, theta):
-        """Calculate minimum distance from an object to any obstacle."""
+        Args:
+            x (float): x position of the object.
+            y (float): y position of the object.
+            l (float): length of the object.
+            b (float): breadth of the object.
+            theta (float): orientation of the object.
+
+        Returns:
+            min_distance (float): minimum distance to obstacle.
+        """
         min_distance = float('inf')
         
         obj_d, obj_corner = self.extract_corners(x, y, l, b, theta)
@@ -273,7 +300,18 @@ class MultiAgentShipTowEnv(gym.Env):
         return min_distance
     
 
-    def inside_target(self, x, y, theta):
+    def inside_target(self, x, y, theta) -> bool:
+        """
+        Check if the object is inside the target.
+
+        Args:
+            x (float): x position of the object.
+            y (float): y position of the object.
+            theta (float): orientation of the object.
+
+        Returns:
+            inside (bool): True if object is inside the target, False otherwise.
+        """
         tx, ty, l, b = self.target_block
 
         obj_d, obj_corner = self.extract_corners(x, y, self.ship_dim[0], self.ship_dim[1], theta)
@@ -286,23 +324,42 @@ class MultiAgentShipTowEnv(gym.Env):
         else:
             return False
 
-    
 
-    # Proximity from obstacles
-    def calculate_proximity_penalty(self, distance, danger_zone=25.0, max_penalty=50.0):
+    
+    def calculate_proximity_penalty(self, distance, danger_zone=25.0, max_penalty=50.0) -> float:
+        """
+        Calculate proximity penalty.
+
+        Args:
+            distance (float): distance to obstacle.
+            danger_zone (float): danger zone radius.
+            max_penalty (float): maximum penalty.
+
+        Returns:
+            penalty (float): proximity penalty.
+        """
         if distance >= danger_zone:
             return 0.0
         
-        # Exponentially increasing penalty as distance decreases
         penalty_factor = abs(2*(danger_zone - distance) / danger_zone)
         return max_penalty * penalty_factor
 
 
-    def _get_reward(self, agent_id, new_ds):
+    def _get_reward(self, agent_id, new_ds) -> float:
+        """
+        Get reward for the agent.
+
+        Args:
+            agent_id (str): agent id.
+            new_ds (float): new distance to target.
+
+        Returns:
+            reward (float): reward for the agent.
+        """
         xs, ys, thetas, xt1, yt1, thetat1, xt2, yt2, thetat2, ds, l = self.state
         
         # Base reward based on progress toward target
-        reward = -ds / (self.grid_size*0.005)
+        reward = -ds / (self.grid_size*0.004)
         
         # Calculate proximity penalties
         ship_distance = self.calculate_distance_to_obstacle(
@@ -331,15 +388,15 @@ class MultiAgentShipTowEnv(gym.Env):
             rope_length = np.linalg.norm(np.array([xt2, yt2]) - np.array([xs, ys]))
             
         if rope_length > self.max_rope_length:
-            reward -= (rope_length - self.max_rope_length)
+            reward -= (rope_length - self.max_rope_length)*0.5
         
-        if new_ds < ds:
-            reward += 50
+        # if new_ds < ds:
+        #     reward += 10
         # Success reward
         # if ds < 6.0 and abs(thetas) < 0.1:
         #     reward += 1000.0
         if self.inside_target(xs, ys, thetas):
-            reward += 100000
+            reward += 1000
             
         # Immediate collision penalty
         # if self.check_collision(xs, ys, self.ship_dim[0], self.ship_dim[1], 'ship'): # replace agent_id with ship
@@ -350,8 +407,20 @@ class MultiAgentShipTowEnv(gym.Env):
         return reward
     
 
-    def step(self, actions):
-        
+
+    def step(self, actions) -> tuple:
+        """
+        Step the environment.
+
+        Args:
+            actions (dict): Actions for each agent.
+
+        Returns:
+            observations (dict): Observations for each agent.
+            rewards (dict): Rewards for each agent.
+            dones (dict): Done flags for each agent.
+            {} (dict): Additional information.
+        """
         vx1, vy1 = actions['tugboat_1']
         vx2, vy2 = actions['tugboat_2']
         
@@ -375,6 +444,7 @@ class MultiAgentShipTowEnv(gym.Env):
         rope1_length = np.linalg.norm(rope1_vector)
         rope2_length = np.linalg.norm(rope2_vector)
 
+        # Limit rope length
         if rope1_length > self.max_rope_length:
             xt1, yt1 = P_fr + (rope1_vector / rope1_length) * self.max_rope_length
 
@@ -388,15 +458,16 @@ class MultiAgentShipTowEnv(gym.Env):
         linear_drag_force = -self.linear_drag_coeff * self.ship_velocity
         net_force += linear_drag_force
 
+        # Update ship position
         acceleration = net_force / self.ship_mass
         self.ship_velocity += acceleration * self.dt
         xs += self.ship_velocity[0] * self.dt
         ys += self.ship_velocity[1] * self.dt
 
+        # Update ship orientation
         torque = np.cross(P_fr - np.array([xs, ys]), force_front_1 + force_front_2)
         angular_drag_torque = -self.angular_drag_coeff * self.angular_velocity
         torque += angular_drag_torque
-
         angular_acceleration = torque / self.ship_inertia
         self.angular_velocity += angular_acceleration * self.dt
         thetas += self.angular_velocity * self.dt
@@ -438,8 +509,11 @@ class MultiAgentShipTowEnv(gym.Env):
         return observations, rewards, dones, {}
 
 
+
     def render(self):
-        """Render the environment."""
+        """
+        Render the environment.
+        """
         if not hasattr(self, 'fig'):
             self.fig, self.ax = plt.subplots()
         else:

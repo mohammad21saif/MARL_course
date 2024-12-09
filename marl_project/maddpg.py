@@ -12,8 +12,8 @@ from datetime import datetime
 
 wandb.init(project="marl")  
 
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device = "cpu"
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = "cpu"
 
 # class StateNormalizer:
 #     def __init__(self):
